@@ -1,0 +1,1 @@
+[31m2025-02-10 17:09:43.773 CST 0001 ERRO[0m [main] [31;1mInitCmd[0m -> Fatal error when initializing core config : FABRIC_CFG_PATH /Users/gaoyifan/web3/agri-trace/blockchain/network/../config/ does not exist

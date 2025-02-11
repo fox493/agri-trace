@@ -1,0 +1,210 @@
+version: '2'
+
+volumes:
+  orderer.agritrace.com:
+  peer0.producers.agritrace.com:
+  peer1.producers.agritrace.com:
+  peer0.logistics.agritrace.com:
+  peer1.logistics.agritrace.com:
+  peer0.retailers.agritrace.com:
+  peer1.retailers.agritrace.com:
+
+networks:
+  agritrace:
+    name: agritrace_default
+
+services:
+  orderer.agritrace.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: orderer-base
+    container_name: orderer.agritrace.com
+    networks:
+      - agritrace
+    volumes:
+      - ../config/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ../crypto-config/ordererOrganizations/agritrace.com/orderers/orderer.agritrace.com/msp:/var/hyperledger/orderer/msp
+      - ../crypto-config/ordererOrganizations/agritrace.com/orderers/orderer.agritrace.com/tls:/var/hyperledger/orderer/tls
+      - orderer.agritrace.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.producers.agritrace.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: peer-base
+    container_name: peer0.producers.agritrace.com
+    networks:
+      - agritrace
+    environment:
+      - CORE_PEER_ID=peer0.producers.agritrace.com
+      - CORE_PEER_ADDRESS=peer0.producers.agritrace.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.producers.agritrace.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.producers.agritrace.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.producers.agritrace.com:7051
+      - CORE_PEER_LOCALMSPID=ProducersMSP
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/producers.agritrace.com/peers/peer0.producers.agritrace.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/producers.agritrace.com/peers/peer0.producers.agritrace.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.producers.agritrace.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+      - 7052:7052
+
+  peer1.producers.agritrace.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: peer-base
+    container_name: peer1.producers.agritrace.com
+    networks:
+      - agritrace
+    environment:
+      - CORE_PEER_ID=peer1.producers.agritrace.com
+      - CORE_PEER_ADDRESS=peer1.producers.agritrace.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.producers.agritrace.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.producers.agritrace.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.producers.agritrace.com:8051
+      - CORE_PEER_LOCALMSPID=ProducersMSP
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/producers.agritrace.com/peers/peer1.producers.agritrace.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/producers.agritrace.com/peers/peer1.producers.agritrace.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.producers.agritrace.com:/var/hyperledger/production
+    ports:
+      - 8051:8051
+      - 8052:8052
+
+  peer0.logistics.agritrace.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: peer-base
+    container_name: peer0.logistics.agritrace.com
+    networks:
+      - agritrace
+    environment:
+      - CORE_PEER_ID=peer0.logistics.agritrace.com
+      - CORE_PEER_ADDRESS=peer0.logistics.agritrace.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.logistics.agritrace.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.logistics.agritrace.com:10051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.logistics.agritrace.com:9051
+      - CORE_PEER_LOCALMSPID=LogisticsMSP
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/logistics.agritrace.com/peers/peer0.logistics.agritrace.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/logistics.agritrace.com/peers/peer0.logistics.agritrace.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.logistics.agritrace.com:/var/hyperledger/production
+    ports:
+      - 9051:9051
+      - 9052:9052
+
+  peer1.logistics.agritrace.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: peer-base
+    container_name: peer1.logistics.agritrace.com
+    networks:
+      - agritrace
+    environment:
+      - CORE_PEER_ID=peer1.logistics.agritrace.com
+      - CORE_PEER_ADDRESS=peer1.logistics.agritrace.com:10051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.logistics.agritrace.com:10052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.logistics.agritrace.com:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.logistics.agritrace.com:10051
+      - CORE_PEER_LOCALMSPID=LogisticsMSP
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/logistics.agritrace.com/peers/peer1.logistics.agritrace.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/logistics.agritrace.com/peers/peer1.logistics.agritrace.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.logistics.agritrace.com:/var/hyperledger/production
+    ports:
+      - 10051:10051
+      - 10052:10052
+
+  peer0.retailers.agritrace.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: peer-base
+    container_name: peer0.retailers.agritrace.com
+    networks:
+      - agritrace
+    environment:
+      - CORE_PEER_ID=peer0.retailers.agritrace.com
+      - CORE_PEER_ADDRESS=peer0.retailers.agritrace.com:11051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.retailers.agritrace.com:11052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.retailers.agritrace.com:12051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.retailers.agritrace.com:11051
+      - CORE_PEER_LOCALMSPID=RetailersMSP
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/retailers.agritrace.com/peers/peer0.retailers.agritrace.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/retailers.agritrace.com/peers/peer0.retailers.agritrace.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.retailers.agritrace.com:/var/hyperledger/production
+    ports:
+      - 11051:11051
+      - 11052:11052
+
+  peer1.retailers.agritrace.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: peer-base
+    container_name: peer1.retailers.agritrace.com
+    networks:
+      - agritrace
+    environment:
+      - CORE_PEER_ID=peer1.retailers.agritrace.com
+      - CORE_PEER_ADDRESS=peer1.retailers.agritrace.com:12051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:12051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.retailers.agritrace.com:12052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:12052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.retailers.agritrace.com:11051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.retailers.agritrace.com:12051
+      - CORE_PEER_LOCALMSPID=RetailersMSP
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/retailers.agritrace.com/peers/peer1.retailers.agritrace.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/retailers.agritrace.com/peers/peer1.retailers.agritrace.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.retailers.agritrace.com:/var/hyperledger/production
+    ports:
+      - 12051:12051
+      - 12052:12052
+
+  cli:
+    extends:
+      file: docker-compose-base.yaml
+      service: cli-base
+    container_name: cli
+    networks:
+      - agritrace
+    environment:
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.producers.agritrace.com:7051
+      - CORE_PEER_LOCALMSPID=ProducersMSP
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/producers.agritrace.com/users/Admin@producers.agritrace.com/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/producers.agritrace.com/peers/peer0.producers.agritrace.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/producers.agritrace.com/peers/peer0.producers.agritrace.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/producers.agritrace.com/peers/peer0.producers.agritrace.com/tls/ca.crt
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../../chaincode:/opt/gopath/src/github.com/chaincode
+      - ../crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+      - ../config:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.agritrace.com
+      - peer0.producers.agritrace.com
+      - peer1.producers.agritrace.com
+      - peer0.logistics.agritrace.com
+      - peer1.logistics.agritrace.com
+      - peer0.retailers.agritrace.com
+      - peer1.retailers.agritrace.com 

@@ -1,0 +1,75 @@
+{
+    "name": "agritrace-network",
+    "version": "1.0.0",
+    "client": {
+        "organization": "Producers",
+        "connection": {
+            "timeout": {
+                "peer": {
+                    "endorser": "300"
+                },
+                "orderer": "300"
+            }
+        }
+    },
+    "channels": {
+        "agritrace": {
+            "orderers": [
+                "orderer.agritrace.com"
+            ],
+            "peers": {
+                "peer0.producers.agritrace.com": {
+                    "endorsingPeer": true,
+                    "chaincodeQuery": true,
+                    "ledgerQuery": true,
+                    "eventSource": true
+                }
+            }
+        }
+    },
+    "organizations": {
+        "Producers": {
+            "mspid": "ProducersMSP",
+            "peers": [
+                "peer0.producers.agritrace.com"
+            ],
+            "certificateAuthorities": [
+                "ca.producers.agritrace.com"
+            ]
+        }
+    },
+    "orderers": {
+        "orderer.agritrace.com": {
+            "url": "grpcs://localhost:7050",
+            "grpcOptions": {
+                "ssl-target-name-override": "orderer.agritrace.com"
+            },
+            "tlsCACerts": {
+                "path": "../blockchain/network/crypto-config/ordererOrganizations/agritrace.com/orderers/orderer.agritrace.com/msp/tlscacerts/tlsca.agritrace.com-cert.pem"
+            }
+        }
+    },
+    "peers": {
+        "peer0.producers.agritrace.com": {
+            "url": "grpcs://localhost:7051",
+            "grpcOptions": {
+                "ssl-target-name-override": "peer0.producers.agritrace.com"
+            },
+            "tlsCACerts": {
+                "path": "../blockchain/network/crypto-config/peerOrganizations/producers.agritrace.com/peers/peer0.producers.agritrace.com/msp/tlscacerts/tlsca.producers.agritrace.com-cert.pem"
+            }
+        }
+    },
+    "certificateAuthorities": {
+        "ca.producers.agritrace.com": {
+            "url": "https://localhost:7054",
+            "caName": "ca.producers.agritrace.com",
+            "tlsCACerts": {
+                "path": "../blockchain/network/crypto-config/peerOrganizations/producers.agritrace.com/ca/ca.producers.agritrace.com-cert.pem"
+            },
+            "httpOptions": {
+                "verify": false
+            }
+        }
+    }
+} 

@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Blockchain specific
+wallet/
+identity/
+*.block
+*.tx
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Blockchain network artifacts
+blockchain/network/organizations/
+blockchain/network/channel-artifacts/
+blockchain/network/system-genesis-block/
+blockchain/network/*.tar.gz
+blockchain/network/*.block
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.cert
+*.csr
+
+# Application specific
+backend/connection-profile-*.json
+backend/wallet/
+frontend/build/

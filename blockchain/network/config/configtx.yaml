@@ -1,0 +1,164 @@
+Organizations:
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: ../crypto-config/ordererOrganizations/agritrace.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererMSP.admin')"
+
+    - &Producers
+        Name: ProducersMSP
+        ID: ProducersMSP
+        MSPDir: ../crypto-config/peerOrganizations/producers.agritrace.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('ProducersMSP.admin', 'ProducersMSP.peer', 'ProducersMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('ProducersMSP.admin', 'ProducersMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('ProducersMSP.admin')"
+        AnchorPeers:
+            - Host: peer0.producers.agritrace.com
+              Port: 7051
+
+    - &Logistics
+        Name: LogisticsMSP
+        ID: LogisticsMSP
+        MSPDir: ../crypto-config/peerOrganizations/logistics.agritrace.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('LogisticsMSP.admin', 'LogisticsMSP.peer', 'LogisticsMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('LogisticsMSP.admin', 'LogisticsMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('LogisticsMSP.admin')"
+        AnchorPeers:
+            - Host: peer0.logistics.agritrace.com
+              Port: 9051
+
+    - &Retailers
+        Name: RetailersMSP
+        ID: RetailersMSP
+        MSPDir: ../crypto-config/peerOrganizations/retailers.agritrace.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('RetailersMSP.admin', 'RetailersMSP.peer', 'RetailersMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('RetailersMSP.admin', 'RetailersMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('RetailersMSP.admin')"
+        AnchorPeers:
+            - Host: peer0.retailers.agritrace.com
+              Port: 11051
+
+Capabilities:
+    Channel: &ChannelCapabilities
+        V2_0: true
+    Orderer: &OrdererCapabilities
+        V2_0: true
+    Application: &ApplicationCapabilities
+        V2_0: true
+
+Application: &ApplicationDefaults
+    Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+    OrdererType: etcdraft
+    Addresses:
+        - orderer.agritrace.com:7050
+    BatchTimeout: 2s
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+    Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+    EtcdRaft:
+        Consenters:
+            - Host: orderer.agritrace.com
+              Port: 7050
+              ClientTLSCert: ../crypto-config/ordererOrganizations/agritrace.com/orderers/orderer.agritrace.com/tls/server.crt
+              ServerTLSCert: ../crypto-config/ordererOrganizations/agritrace.com/orderers/orderer.agritrace.com/tls/server.crt
+
+Channel: &ChannelDefaults
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ChannelCapabilities
+
+Profiles:
+    OrdererGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            AgriTraceConsortium:
+                Organizations:
+                    - *Producers
+                    - *Logistics
+                    - *Retailers
+
+    AgriTraceChannel:
+        Consortium: AgriTraceConsortium
+        <<: *ChannelDefaults
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *Producers
+                - *Logistics
+                - *Retailers
+            Capabilities:
+                <<: *ApplicationCapabilities 

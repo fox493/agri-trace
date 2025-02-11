@@ -1,0 +1,30 @@
+OrdererOrgs:
+  - Name: Orderer
+    Domain: agritrace.com
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: Producers
+    Domain: producers.agritrace.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+
+  - Name: Logistics
+    Domain: logistics.agritrace.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+
+  - Name: Retailers
+    Domain: retailers.agritrace.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1 
