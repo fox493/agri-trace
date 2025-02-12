@@ -6,31 +6,32 @@ const { generateToken, hashPassword, comparePassword, ROLES } = require('../util
 // 用户注册
 router.post('/register', async (req, res) => {
     try {
-        const {
-            username,
-            password,
-            role,
-            orgId,
-            orgName,
-            name,
-            email,
-            phone
-        } = req.body;
+        const { username, password, role } = req.body;
 
         // 检查必要字段
-        if (!username || !password || !role || !orgId || !orgName || !name || !email || !phone) {
-            return res.status(400).json({ error: 'All fields are required' });
+        if (!username || !password || !role) {
+            return res.status(400).json({ error: '用户名、密码和角色是必填项' });
+        }
+
+        // 验证用户名长度
+        if (username.length < 3) {
+            return res.status(400).json({ error: '用户名长度至少3位' });
+        }
+
+        // 验证密码长度
+        if (password.length < 6) {
+            return res.status(400).json({ error: '密码长度至少6位' });
         }
 
         // 验证角色是否有效
         if (!Object.values(ROLES).includes(role)) {
-            return res.status(400).json({ error: 'Invalid role' });
+            return res.status(400).json({ error: '无效的角色' });
         }
 
         // 检查用户名是否已存在
-        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        const existingUser = await User.findOne({ username });
         if (existingUser) {
-            return res.status(400).json({ error: 'Username or email already exists' });
+            return res.status(400).json({ error: '用户名已存在' });
         }
 
         // 创建新用户
@@ -38,35 +39,26 @@ router.post('/register', async (req, res) => {
         const user = new User({
             username,
             password: hashedPassword,
-            role,
-            orgId,
-            orgName,
-            name,
-            email,
-            phone
+            role
         });
 
         await user.save();
 
-        // 生成token
+        // 生成 token
         const token = generateToken(user);
 
         res.status(201).json({
-            message: 'User registered successfully',
+            message: '注册成功',
             token,
             user: {
                 id: user._id,
                 username: user.username,
-                role: user.role,
-                orgId: user.orgId,
-                orgName: user.orgName,
-                name: user.name,
-                email: user.email
+                role: user.role
             }
         });
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ error: 'Registration failed' });
+        res.status(500).json({ error: '注册失败，请稍后重试' });
     }
 });
 
@@ -75,46 +67,33 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // 查找用户
+        // 检查用户是否存在
         const user = await User.findOne({ username });
         if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        // 检查用户是否被禁用
-        if (!user.active) {
-            return res.status(403).json({ error: 'Account is disabled' });
+            return res.status(401).json({ error: '用户名或密码错误' });
         }
 
         // 验证密码
         const isValidPassword = await comparePassword(password, user.password);
         if (!isValidPassword) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res.status(401).json({ error: '用户名或密码错误' });
         }
 
-        // 更新最后登录时间
-        user.lastLogin = new Date();
-        await user.save();
-
-        // 生成token
+        // 生成 token
         const token = generateToken(user);
 
         res.json({
-            message: 'Login successful',
+            message: '登录成功',
             token,
             user: {
                 id: user._id,
                 username: user.username,
-                role: user.role,
-                orgId: user.orgId,
-                orgName: user.orgName,
-                name: user.name,
-                email: user.email
+                role: user.role
             }
         });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ error: 'Login failed' });
+        res.status(500).json({ error: '登录失败，请稍后重试' });
     }
 });
 

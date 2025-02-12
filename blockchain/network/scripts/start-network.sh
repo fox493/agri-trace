@@ -6,6 +6,13 @@ cd "$(dirname "$0")/.."
 # 生成必要的证书和创世区块
 ./scripts/generate.sh
 
+# 启动 CA 服务
+echo "启动 CA 服务..."
+docker-compose -f docker/docker-compose-ca.yaml up -d
+
+# 等待 CA 服务启动
+sleep 3
+
 # 启动网络
 docker-compose -f docker/docker-compose.yaml up -d
 

@@ -1,44 +1,58 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRES_IN = '24h';
 
 // 用户角色
 const ROLES = {
-    PRODUCER: 'producer',    // 生产者
+    FARMER: 'farmer',        // 农户
     LOGISTICS: 'logistics',  // 物流方
     RETAILER: 'retailer',   // 零售商
     INSPECTOR: 'inspector',  // 质检员
-    ADMIN: 'admin'          // 管理员
+    ADMIN: 'admin',         // 管理员
+    CONSUMER: 'consumer'    // 消费者
 };
 
 // 角色权限映射
 const ROLE_PERMISSIONS = {
-    [ROLES.PRODUCER]: [
-        'createProduct',
-        'updateProductionInfo',
-        'addQualityInfo',
-        'queryProduct'
+    [ROLES.FARMER]: [
+        'createProduct',           // 创建农产品
+        'updateProductionInfo',    // 更新生产信息
+        'addEnvironmentalData',    // 添加环境数据
+        'updatePlantingStatus',    // 更新种植状态
+        'recordHarvest',          // 记录收获信息
+        'manageFarm',             // 管理农场信息
+        'viewFarmProducts',       // 查看自己的农产品
+        'queryProduct'            // 查询产品
     ],
     [ROLES.LOGISTICS]: [
-        'addLogisticsInfo',
-        'updateProcessingInfo',
-        'addQualityInfo',
-        'queryProduct'
+        'addLogisticsInfo',       // 添加物流信息
+        'updateProcessingInfo',   // 更新加工信息
+        'updateStorageInfo',      // 更新仓储信息
+        'addQualityInfo',         // 添加运输过程中的质量信息
+        'queryProduct'            // 查询产品
     ],
     [ROLES.RETAILER]: [
-        'updateRetailInfo',
-        'markProductAsSold',
-        'addQualityInfo',
-        'queryProduct'
+        'updateRetailInfo',       // 更新零售信息
+        'markProductAsSold',      // 标记产品为已售出
+        'addQualityInfo',         // 添加销售环节的质量信息
+        'manageInventory',        // 管理库存
+        'queryProduct'            // 查询产品
     ],
     [ROLES.INSPECTOR]: [
-        'addQualityInfo',
-        'queryProduct'
+        'addQualityInspection',   // 添加质量检测记录
+        'issueCertification',     // 颁发认证
+        'revokeQualification',    // 撤销资格
+        'queryProduct',           // 查询产品
+        'viewInspectionHistory'   // 查看检测历史
+    ],
+    [ROLES.CONSUMER]: [
+        'queryProduct',           // 查询产品
+        'viewTraceability',       // 查看溯源信息
+        'submitFeedback'          // 提交反馈
     ],
     [ROLES.ADMIN]: [
-        'all'  // 管理员有所有权限
+        'all'                     // 管理员有所有权限
     ]
 };
 
@@ -51,7 +65,7 @@ const generateToken = (user) => {
             role: user.role,
             orgId: user.orgId
         },
-        JWT_SECRET,
+        process.env.JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
     );
 };
@@ -59,7 +73,7 @@ const generateToken = (user) => {
 // 验证JWT token
 const verifyToken = (token) => {
     try {
-        return jwt.verify(token, JWT_SECRET);
+        return jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
         throw new Error('Invalid token');
     }

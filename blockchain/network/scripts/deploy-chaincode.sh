@@ -2,7 +2,17 @@
 
 # 设置环境变量
 export CHAINCODE_NAME="agritrace"
-export CHAINCODE_VERSION="1.0"
+# 从文件读取版本号，如果文件不存在则创建
+VERSION_FILE="chaincode_version.txt"
+if [ -f "$VERSION_FILE" ]; then
+    CURRENT_VERSION=$(cat $VERSION_FILE)
+    NEW_VERSION=$(echo $CURRENT_VERSION + 0.1 | bc)
+else
+    NEW_VERSION="1.0"
+fi
+echo $NEW_VERSION > $VERSION_FILE
+
+export CHAINCODE_VERSION="$NEW_VERSION"
 export CHAINCODE_SEQUENCE="1"
 export CHANNEL_NAME="agritrace"
 

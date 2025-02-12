@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Avatar, Space, Typography } from 'antd';
+import { Layout, Avatar, Space, Typography } from 'antd';
 import { UserOutlined, BellOutlined } from '@ant-design/icons';
 
 const { Header } = Layout;

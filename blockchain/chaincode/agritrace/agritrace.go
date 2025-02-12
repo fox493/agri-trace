@@ -15,91 +15,48 @@ type AgriTrace struct {
 
 // Product 定义农产品结构
 type Product struct {
-	ID              string          `json:"id"`              // 产品ID
-	Name            string          `json:"name"`            // 产品名称
-	BatchNumber     string          `json:"batchNumber"`     // 批次号
-	Category        string          `json:"category"`        // 产品类别
-	Description     string          `json:"description"`     // 产品描述
-	ProductionInfo  ProductionInfo  `json:"productionInfo"`  // 生产信息
-	ProcessingInfo  ProcessingInfo  `json:"processingInfo"`  // 加工信息
-	LogisticsInfo   []LogisticsInfo `json:"logisticsInfo"`   // 物流信息
-	QualityInfo     []QualityInfo   `json:"qualityInfo"`     // 质量检测信息
-	RetailInfo      RetailInfo      `json:"retailInfo"`      // 零售信息
-	Status          string          `json:"status"`          // 产品状态：PLANTED, HARVESTED, PROCESSING, SHIPPING, SELLING, SOLD
-	CreatedAt       time.Time       `json:"createdAt"`       // 创建时间
-	UpdatedAt       time.Time       `json:"updatedAt"`       // 更新时间
+	ID           string    `json:"id"`           // 产品ID
+	Name         string    `json:"name"`         // 产品名称
+	Area         float64   `json:"area"`         // 种植面积（亩）
+	PlantingDate string    `json:"plantingDate"` // 种植日期
+	HarvestDate  string    `json:"harvestDate"`  // 收获日期（可选）
+	Status       string    `json:"status"`       // 状态：PLANTING（种植中）, HARVESTED（已收获）
+	FarmerID     string    `json:"farmerId"`     // 农户ID
+	Location     string    `json:"location"`     // 种植地点
+	CreatedAt    time.Time `json:"createdAt"`    // 创建时间
+	UpdatedAt    time.Time `json:"updatedAt"`    // 更新时间
 }
 
-// ProductionInfo 生产信息
-type ProductionInfo struct {
-	FarmID        string    `json:"farmId"`        // 农场ID
-	FarmName      string    `json:"farmName"`      // 农场名称
-	Location      Location  `json:"location"`      // 种植地点
-	PlantingDate  string    `json:"plantingDate"`  // 种植日期
-	HarvestDate   string    `json:"harvestDate"`   // 收获日期
-	FarmingMethod string    `json:"farmingMethod"` // 种植方法
-	Fertilizers   []string  `json:"fertilizers"`   // 使用的肥料
-	Pesticides    []string  `json:"pesticides"`    // 使用的农药
-	Weather       []Weather `json:"weather"`       // 天气记录
+// ProductionRecord 定义生产记录结构
+type ProductionRecord struct {
+	ID          string    `json:"id"`          // 记录ID
+	ProductID   string    `json:"productId"`   // 产品ID
+	Type        string    `json:"type"`        // 记录类型：PLANTING（播种）, FERTILIZING（施肥）, HARVESTING（收获）
+	Date        string    `json:"date"`        // 操作日期
+	Description string    `json:"description"` // 操作描述
+	OperatorID  string    `json:"operatorId"`  // 操作人ID
+	CreatedAt   time.Time `json:"createdAt"`   // 创建时间
 }
 
-// ProcessingInfo 加工信息
-type ProcessingInfo struct {
-	ProcessorID   string    `json:"processorId"`   // 加工商ID
-	ProcessorName string    `json:"processorName"` // 加工商名称
-	Location      Location  `json:"location"`      // 加工地点
-	ProcessDate   time.Time `json:"processDate"`   // 加工日期
-	ProcessMethod string    `json:"processMethod"` // 加工方法
-	Temperature   float64   `json:"temperature"`   // 加工温度
-	Humidity      float64   `json:"humidity"`      // 加工环境湿度
-}
-
-// LogisticsInfo 物流信息
-type LogisticsInfo struct {
-	CarrierID     string    `json:"carrierId"`     // 承运商ID
-	CarrierName   string    `json:"carrierName"`   // 承运商名称
-	TransportType string    `json:"transportType"` // 运输方式
-	FromLocation  Location  `json:"fromLocation"`  // 起始地点
-	ToLocation    Location  `json:"toLocation"`    // 目的地点
-	StartTime     time.Time `json:"startTime"`     // 开始时间
-	EndTime       time.Time `json:"endTime"`       // 结束时间
-	Temperature   float64   `json:"temperature"`   // 运输温度
-	Humidity      float64   `json:"humidity"`      // 运输湿度
-}
-
-// QualityInfo 质量检测信息
-type QualityInfo struct {
-	InspectorID     string    `json:"inspectorId"`     // 检测机构ID
-	InspectorName   string    `json:"inspectorName"`   // 检测机构名称
-	InspectionDate  time.Time `json:"inspectionDate"`  // 检测日期
-	ExpirationDate  time.Time `json:"expirationDate"`  // 过期日期
-	Standards       []string  `json:"standards"`       // 检测标准
-	Results         []string  `json:"results"`         // 检测结果
-	Certifications  []string  `json:"certifications"`  // 认证信息
-}
-
-// RetailInfo 零售信息
-type RetailInfo struct {
-	RetailerID   string    `json:"retailerId"`   // 零售商ID
-	RetailerName string    `json:"retailerName"` // 零售商名称
-	Location     Location  `json:"location"`     // 销售地点
-	Price        float64   `json:"price"`        // 销售价格
-	SaleDate     time.Time `json:"saleDate"`     // 销售日期
-}
-
-// Location 位置信息
-type Location struct {
-	Latitude  float64 `json:"latitude"`  // 纬度
-	Longitude float64 `json:"longitude"` // 经度
-	Address   string  `json:"address"`   // 详细地址
-}
-
-// Weather 天气记录
-type Weather struct {
-	Date        time.Time `json:"date"`        // 日期
+// EnvironmentRecord 环境记录结构
+type EnvironmentRecord struct {
+	ID          string    `json:"id"`          // 记录ID
+	ProductID   string    `json:"productId"`   // 产品ID
 	Temperature float64   `json:"temperature"` // 温度
-	Humidity    float64   `json:"humidity"`    // 湿度
-	Rainfall    float64   `json:"rainfall"`    // 降雨量
+	Humidity    float64   `json:"humidity"`   // 湿度
+	RecordTime  time.Time `json:"recordTime"`  // 记录时间
+	OperatorID  string    `json:"operatorId"`  // 记录人ID
+}
+
+// QualityRecord 质量检测记录
+type QualityRecord struct {
+	ID          string    `json:"id"`          // 记录ID
+	ProductID   string    `json:"productId"`   // 产品ID
+	TestType    string    `json:"testType"`    // 检测类型
+	Result      string    `json:"result"`      // 检测结果
+	IsQualified bool      `json:"isQualified"` // 是否合格
+	RecordTime  time.Time `json:"recordTime"`  // 记录时间
+	InspectorID string    `json:"inspectorId"` // 检测员ID
 }
 
 // InitLedger 初始化账本
@@ -109,18 +66,13 @@ func (t *AgriTrace) InitLedger(ctx contractapi.TransactionContextInterface) erro
 
 // CreateProduct 创建新的农产品记录
 func (t *AgriTrace) CreateProduct(ctx contractapi.TransactionContextInterface, productData string) error {
-	// 检查调用者身份
-	err := t.checkRole(ctx, []string{"Producers"})
-	if err != nil {
-		return fmt.Errorf("无权限创建产品: %v", err)
-	}
-
 	var product Product
-	err = json.Unmarshal([]byte(productData), &product)
+	err := json.Unmarshal([]byte(productData), &product)
 	if err != nil {
 		return fmt.Errorf("解析产品数据失败: %v", err)
 	}
 
+	// 检查产品ID是否已存在
 	exists, err := t.ProductExists(ctx, product.ID)
 	if err != nil {
 		return err
@@ -129,8 +81,8 @@ func (t *AgriTrace) CreateProduct(ctx contractapi.TransactionContextInterface, p
 		return fmt.Errorf("产品已存在: %s", product.ID)
 	}
 
-	// 设置初始状态
-	product.Status = "PLANTED"
+	// 设置初始状态和时间
+	product.Status = "PLANTING"
 	product.CreatedAt = time.Now()
 	product.UpdatedAt = time.Now()
 
@@ -139,34 +91,65 @@ func (t *AgriTrace) CreateProduct(ctx contractapi.TransactionContextInterface, p
 		return err
 	}
 
-	// 记录创建事件
-	err = ctx.GetStub().SetEvent("ProductCreated", productJSON)
-	if err != nil {
-		return fmt.Errorf("记录事件失败: %v", err)
-	}
-
 	return ctx.GetStub().PutState(product.ID, productJSON)
 }
 
-// UpdateProductionInfo 更新生产信息
-func (t *AgriTrace) UpdateProductionInfo(ctx contractapi.TransactionContextInterface, productID string, productionData string) error {
-	err := t.checkRole(ctx, []string{"Producers"})
+// AddProductionRecord 添加生产记录
+func (t *AgriTrace) AddProductionRecord(ctx contractapi.TransactionContextInterface, recordData string) error {
+	var record ProductionRecord
+	err := json.Unmarshal([]byte(recordData), &record)
 	if err != nil {
-		return fmt.Errorf("无权限更新生产信息: %v", err)
+		return fmt.Errorf("解析记录数据失败: %v", err)
 	}
 
-	var productionInfo ProductionInfo
-	err = json.Unmarshal([]byte(productionData), &productionInfo)
+	// 检查产品是否存在
+	exists, err := t.ProductExists(ctx, record.ProductID)
 	if err != nil {
-		return fmt.Errorf("解析生产数据失败: %v", err)
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("产品不存在: %s", record.ProductID)
 	}
 
+	// 设置创建时间
+	record.CreatedAt = time.Now()
+
+	// 如果是收获记录，更新产品状态
+	if record.Type == "HARVESTING" {
+		product, err := t.QueryProduct(ctx, record.ProductID)
+		if err != nil {
+			return err
+		}
+		product.Status = "HARVESTED"
+		product.HarvestDate = record.Date
+		product.UpdatedAt = time.Now()
+
+		productJSON, err := json.Marshal(product)
+		if err != nil {
+			return err
+		}
+		err = ctx.GetStub().PutState(record.ProductID, productJSON)
+		if err != nil {
+			return err
+		}
+	}
+
+	recordJSON, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+
+	return ctx.GetStub().PutState(record.ID, recordJSON)
+}
+
+// UpdateProductStatus 更新产品状态
+func (t *AgriTrace) UpdateProductStatus(ctx contractapi.TransactionContextInterface, productID string, status string) error {
 	product, err := t.QueryProduct(ctx, productID)
 	if err != nil {
 		return err
 	}
 
-	product.ProductionInfo = productionInfo
+	product.Status = status
 	product.UpdatedAt = time.Now()
 
 	productJSON, err := json.Marshal(product)
@@ -177,156 +160,14 @@ func (t *AgriTrace) UpdateProductionInfo(ctx contractapi.TransactionContextInter
 	return ctx.GetStub().PutState(productID, productJSON)
 }
 
-// UpdateProcessingInfo 更新加工信息
-func (t *AgriTrace) UpdateProcessingInfo(ctx contractapi.TransactionContextInterface, productID string, processingData string) error {
-	err := t.checkRole(ctx, []string{"Producers", "Logistics"})
+// QueryProduct 查询产品信息
+func (t *AgriTrace) QueryProduct(ctx contractapi.TransactionContextInterface, productID string) (*Product, error) {
+	productJSON, err := ctx.GetStub().GetState(productID)
 	if err != nil {
-		return fmt.Errorf("无权限更新加工信息: %v", err)
-	}
-
-	var processingInfo ProcessingInfo
-	err = json.Unmarshal([]byte(processingData), &processingInfo)
-	if err != nil {
-		return fmt.Errorf("解析加工数据失败: %v", err)
-	}
-
-	product, err := t.QueryProduct(ctx, productID)
-	if err != nil {
-		return err
-	}
-
-	product.ProcessingInfo = processingInfo
-	product.Status = "PROCESSING"
-	product.UpdatedAt = time.Now()
-
-	productJSON, err := json.Marshal(product)
-	if err != nil {
-		return err
-	}
-
-	return ctx.GetStub().PutState(productID, productJSON)
-}
-
-// AddLogisticsInfo 添加物流信息
-func (t *AgriTrace) AddLogisticsInfo(ctx contractapi.TransactionContextInterface, productID string, logisticsData string) error {
-	err := t.checkRole(ctx, []string{"Logistics"})
-	if err != nil {
-		return fmt.Errorf("无权限添加物流信息: %v", err)
-	}
-
-	var logisticsInfo LogisticsInfo
-	err = json.Unmarshal([]byte(logisticsData), &logisticsInfo)
-	if err != nil {
-		return fmt.Errorf("解析物流数据失败: %v", err)
-	}
-
-	product, err := t.QueryProduct(ctx, productID)
-	if err != nil {
-		return err
-	}
-
-	product.LogisticsInfo = append(product.LogisticsInfo, logisticsInfo)
-	product.Status = "SHIPPING"
-	product.UpdatedAt = time.Now()
-
-	productJSON, err := json.Marshal(product)
-	if err != nil {
-		return err
-	}
-
-	return ctx.GetStub().PutState(productID, productJSON)
-}
-
-// AddQualityInfo 添加质量检测信息
-func (t *AgriTrace) AddQualityInfo(ctx contractapi.TransactionContextInterface, productID string, qualityData string) error {
-	err := t.checkRole(ctx, []string{"Producers", "Logistics", "Retailers"})
-	if err != nil {
-		return fmt.Errorf("无权限添加质量检测信息: %v", err)
-	}
-
-	var qualityInfo QualityInfo
-	err = json.Unmarshal([]byte(qualityData), &qualityInfo)
-	if err != nil {
-		return fmt.Errorf("解析质量检测数据失败: %v", err)
-	}
-
-	product, err := t.QueryProduct(ctx, productID)
-	if err != nil {
-		return err
-	}
-
-	product.QualityInfo = append(product.QualityInfo, qualityInfo)
-	product.UpdatedAt = time.Now()
-
-	productJSON, err := json.Marshal(product)
-	if err != nil {
-		return err
-	}
-
-	return ctx.GetStub().PutState(productID, productJSON)
-}
-
-// UpdateRetailInfo 更新零售信息
-func (t *AgriTrace) UpdateRetailInfo(ctx contractapi.TransactionContextInterface, productID string, retailData string) error {
-	err := t.checkRole(ctx, []string{"Retailers"})
-	if err != nil {
-		return fmt.Errorf("无权限更新零售信息: %v", err)
-	}
-
-	var retailInfo RetailInfo
-	err = json.Unmarshal([]byte(retailData), &retailInfo)
-	if err != nil {
-		return fmt.Errorf("解析零售数据失败: %v", err)
-	}
-
-	product, err := t.QueryProduct(ctx, productID)
-	if err != nil {
-		return err
-	}
-
-	product.RetailInfo = retailInfo
-	product.Status = "SELLING"
-	product.UpdatedAt = time.Now()
-
-	productJSON, err := json.Marshal(product)
-	if err != nil {
-		return err
-	}
-
-	return ctx.GetStub().PutState(productID, productJSON)
-}
-
-// SellProduct 售出产品
-func (t *AgriTrace) SellProduct(ctx contractapi.TransactionContextInterface, productID string) error {
-	err := t.checkRole(ctx, []string{"Retailers"})
-	if err != nil {
-		return fmt.Errorf("无权限更新销售状态: %v", err)
-	}
-
-	product, err := t.QueryProduct(ctx, productID)
-	if err != nil {
-		return err
-	}
-
-	product.Status = "SOLD"
-	product.UpdatedAt = time.Now()
-
-	productJSON, err := json.Marshal(product)
-	if err != nil {
-		return err
-	}
-
-	return ctx.GetStub().PutState(productID, productJSON)
-}
-
-// QueryProduct 查询农产品信息
-func (t *AgriTrace) QueryProduct(ctx contractapi.TransactionContextInterface, id string) (*Product, error) {
-	productJSON, err := ctx.GetStub().GetState(id)
-	if err != nil {
-		return nil, fmt.Errorf("获取产品信息失败: %v", err)
+		return nil, fmt.Errorf("查询产品失败: %v", err)
 	}
 	if productJSON == nil {
-		return nil, fmt.Errorf("产品不存在: %s", id)
+		return nil, fmt.Errorf("产品不存在: %s", productID)
 	}
 
 	var product Product
@@ -338,29 +179,12 @@ func (t *AgriTrace) QueryProduct(ctx contractapi.TransactionContextInterface, id
 	return &product, nil
 }
 
-// QueryProductsByBatch 按批次查询产品
-func (t *AgriTrace) QueryProductsByBatch(ctx contractapi.TransactionContextInterface, batchNumber string) ([]*Product, error) {
-	queryString := fmt.Sprintf(`{"selector":{"batchNumber":"%s"}}`, batchNumber)
-	return t.queryProducts(ctx, queryString)
-}
-
-// QueryProductsByStatus 按状态查询产品
-func (t *AgriTrace) QueryProductsByStatus(ctx contractapi.TransactionContextInterface, status string) ([]*Product, error) {
-	queryString := fmt.Sprintf(`{"selector":{"status":"%s"}}`, status)
-	return t.queryProducts(ctx, queryString)
-}
-
-// QueryProductsByDateRange 按时间范围查询产品
-func (t *AgriTrace) QueryProductsByDateRange(ctx contractapi.TransactionContextInterface, startDate string, endDate string) ([]*Product, error) {
-	queryString := fmt.Sprintf(`{"selector":{"createdAt":{"$gte":"%s","$lte":"%s"}}}`, startDate, endDate)
-	return t.queryProducts(ctx, queryString)
-}
-
-// queryProducts 通用查询函数
-func (t *AgriTrace) queryProducts(ctx contractapi.TransactionContextInterface, queryString string) ([]*Product, error) {
-	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+// QueryProductsByFarmer 查询农户的所有产品
+func (t *AgriTrace) QueryProductsByFarmer(ctx contractapi.TransactionContextInterface, farmerID string) (string, error) {
+	// 使用 GetStateByRange 替代 GetQueryResult
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resultsIterator.Close()
 
@@ -368,44 +192,199 @@ func (t *AgriTrace) queryProducts(ctx contractapi.TransactionContextInterface, q
 	for resultsIterator.HasNext() {
 		queryResult, err := resultsIterator.Next()
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
 		var product Product
 		err = json.Unmarshal(queryResult.Value, &product)
 		if err != nil {
-			return nil, err
+			continue // 跳过非产品记录
 		}
-		products = append(products, &product)
+
+		// 在内存中过滤农户的产品
+		if product.FarmerID == farmerID {
+			products = append(products, &product)
+		}
 	}
 
-	return products, nil
+	// 确保即使没有找到产品也返回有效的 JSON 数组
+	if products == nil {
+		products = []*Product{}
+	}
+
+	// 将结果转换为 JSON 字符串
+	productsJSON, err := json.Marshal(products)
+	if err != nil {
+		return "", fmt.Errorf("转换产品列表为 JSON 失败: %v", err)
+	}
+
+	return string(productsJSON), nil
 }
 
-// ProductExists 检查农产品是否存在
-func (t *AgriTrace) ProductExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
-	productJSON, err := ctx.GetStub().GetState(id)
+// ProductExists 检查产品是否存在
+func (t *AgriTrace) ProductExists(ctx contractapi.TransactionContextInterface, productID string) (bool, error) {
+	productJSON, err := ctx.GetStub().GetState(productID)
 	if err != nil {
-		return false, fmt.Errorf("查询产品状态失败: %v", err)
+		return false, fmt.Errorf("查询产品失败: %v", err)
 	}
-
 	return productJSON != nil, nil
 }
 
-// checkRole 检查调用者角色
-func (t *AgriTrace) checkRole(ctx contractapi.TransactionContextInterface, allowedOrgs []string) error {
-	mspID, err := ctx.GetClientIdentity().GetMSPID()
+// AddEnvironmentRecord 添加环境记录
+func (t *AgriTrace) AddEnvironmentRecord(ctx contractapi.TransactionContextInterface, recordData string) error {
+	var record EnvironmentRecord
+	err := json.Unmarshal([]byte(recordData), &record)
 	if err != nil {
-		return fmt.Errorf("获取身份信息失败: %v", err)
+		return fmt.Errorf("解析环境记录数据失败: %v", err)
 	}
+	
+	// 检查产品是否存在
+	exists, err := t.ProductExists(ctx, record.ProductID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("产品不存在: %s", record.ProductID)
+	}
+	
+	// 设置记录时间
+	record.RecordTime = time.Now()
+	
+	// 检查是否有异常
+	if record.Temperature > 35 || record.Temperature < 0 {
+		// 触发温度异常警报
+		return fmt.Errorf("温度异常警报: %f", record.Temperature)
+	}
+	
+	if record.Humidity < 0 || record.Humidity > 100 {
+		// 触发湿度异常警报
+		return fmt.Errorf("湿度异常警报: %f", record.Humidity)
+	}
+	
+	recordJSON, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+	
+	return ctx.GetStub().PutState(record.ID, recordJSON)
+}
 
-	for _, org := range allowedOrgs {
-		if mspID == org+"MSP" {
-			return nil
+// AddQualityRecord 添加质量检测记录
+func (t *AgriTrace) AddQualityRecord(ctx contractapi.TransactionContextInterface, recordData string) error {
+	var record QualityRecord
+	err := json.Unmarshal([]byte(recordData), &record)
+	if err != nil {
+		return fmt.Errorf("解析质量检测记录数据失败: %v", err)
+	}
+	
+	// 检查产品是否存在
+	exists, err := t.ProductExists(ctx, record.ProductID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("产品不存在: %s", record.ProductID)
+	}
+	
+	// 设置记录时间
+	record.RecordTime = time.Now()
+	
+	recordJSON, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+	
+	return ctx.GetStub().PutState(record.ID, recordJSON)
+}
+
+// QueryEnvironmentRecords 查询产品的环境记录
+func (t *AgriTrace) QueryEnvironmentRecords(ctx contractapi.TransactionContextInterface, productID string) ([]*EnvironmentRecord, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var records []*EnvironmentRecord
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var record EnvironmentRecord
+		err = json.Unmarshal(queryResult.Value, &record)
+		if err != nil {
+			continue // 跳过非环境记录
+		}
+
+		// 在内存中过滤指定产品的记录
+		if record.ProductID == productID {
+			records = append(records, &record)
 		}
 	}
 
-	return fmt.Errorf("组织 %s 无权限执行此操作", mspID)
+	return records, nil
+}
+
+// QueryQualityRecords 查询产品的质量检测记录
+func (t *AgriTrace) QueryQualityRecords(ctx contractapi.TransactionContextInterface, productID string) ([]*QualityRecord, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var records []*QualityRecord
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var record QualityRecord
+		err = json.Unmarshal(queryResult.Value, &record)
+		if err != nil {
+			continue // 跳过非质量检测记录
+		}
+
+		// 在内存中过滤指定产品的记录
+		if record.ProductID == productID {
+			records = append(records, &record)
+		}
+	}
+
+	return records, nil
+}
+
+// QueryProductionRecords 查询产品的生产记录
+func (t *AgriTrace) QueryProductionRecords(ctx contractapi.TransactionContextInterface, productID string) ([]*ProductionRecord, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var records []*ProductionRecord
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var record ProductionRecord
+		err = json.Unmarshal(queryResult.Value, &record)
+		if err != nil {
+			continue // 跳过非生产记录
+		}
+
+		// 在内存中过滤指定产品的记录
+		if record.ProductID == productID {
+			records = append(records, &record)
+		}
+	}
+
+	return records, nil
 }
 
 func main() {

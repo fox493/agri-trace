@@ -5,12 +5,21 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const { logger } = require('./utils/logger');
 const morgan = require('morgan');
-const { authMiddleware } = require('./utils/auth');
-const fabricClient = require('./utils/fabric');
-const productsRouter = require('./routes/products');
+const auth = require('./middleware/auth');
 
 // Load environment variables
 dotenv.config();
+
+// Log environment variables for debugging
+logger.info('Environment Variables:', {
+    FABRIC_CHANNEL_NAME: process.env.FABRIC_CHANNEL_NAME,
+    FABRIC_CHAINCODE_NAME: process.env.FABRIC_CHAINCODE_NAME,
+    FABRIC_MSP_ID: process.env.FABRIC_MSP_ID,
+    FABRIC_WALLET_PATH: process.env.FABRIC_WALLET_PATH,
+    FABRIC_CONNECTION_PROFILE_PATH: process.env.FABRIC_CONNECTION_PROFILE_PATH
+});
+
+const fabricClient = require('./utils/fabric');
 
 // Initialize Express app
 const app = express();
@@ -21,22 +30,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-// Public routes
+// Routes
 app.use('/api/auth', require('./routes/auth'));
-
-// Protected routes
-app.use('/api/products', authMiddleware, productsRouter);
-app.use('/api/farms', authMiddleware, require('./routes/farms'));
-app.use('/api/logistics', authMiddleware, require('./routes/logistics'));
-app.use('/api/trace', authMiddleware, require('./routes/trace'));
+app.use('/api/products', auth, require('./routes/products'));
+app.use('/api/farms', auth, require('./routes/farms'));
+app.use('/api/environment', auth, require('./routes/environment'));
+app.use('/api/quality', auth, require('./routes/quality'));
 
 // Initialize Fabric client
 (async () => {
   try {
-    await fabricClient.init();
-    console.log('Fabric client initialized successfully');
+    await fabricClient.connect();
+    logger.info('Fabric client initialized successfully');
   } catch (error) {
-    console.error('Failed to initialize Fabric client:', error);
+    logger.error('Failed to initialize Fabric client:', error);
     process.exit(1);
   }
 })();

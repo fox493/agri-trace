@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { logger } = require('../utils/logger');
 const fabricClient = require('../utils/fabric');
+const { checkPermission } = require('../utils/auth');
 
 // 获取所有农场列表
 router.get('/', async (req, res) => {
   try {
-    const farms = await fabricClient.queryFarms();
+    const farms = await fabricClient.queryAllFarms();
     res.json(farms);
   } catch (error) {
     logger.error('Failed to get farms:', error);
@@ -14,7 +15,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 获取单个农场信息
+
 router.get('/:id', async (req, res) => {
   try {
     const farm = await fabricClient.queryFarm(req.params.id);
@@ -29,39 +30,44 @@ router.get('/:id', async (req, res) => {
 });
 
 // 创建新农场
-router.post('/', async (req, res) => {
+router.post('/', checkPermission('producer'), async (req, res) => {
   try {
     const farmData = {
       id: req.body.id,
       name: req.body.name,
-      location: req.body.location,
       owner: req.body.owner,
-      certifications: req.body.certifications,
-      products: []
+      location: req.body.location,
+      size: req.body.size,
+      products: req.body.products || [],
+      certifications: req.body.certifications || []
     };
+    
     await fabricClient.createFarm(farmData);
     res.status(201).json(farmData);
   } catch (error) {
     logger.error('Failed to create farm:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
 
 // 更新农场信息
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkPermission('producer'), async (req, res) => {
   try {
     const farmData = {
       id: req.params.id,
       name: req.body.name,
-      location: req.body.location,
       owner: req.body.owner,
+      location: req.body.location,
+      size: req.body.size,
+      products: req.body.products,
       certifications: req.body.certifications
     };
-    await fabricClient.updateFarm(farmData);
+    
+    await fabricClient.updateFarm(req.params.id, farmData);
     res.json(farmData);
   } catch (error) {
     logger.error('Failed to update farm:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
 

@@ -38,6 +38,9 @@ importers:
       morgan:
         specifier: ^1.10.0
         version: 1.10.0
+      uuid:
+        specifier: ^9.0.0
+        version: 9.0.1
       winston:
         specifier: ^3.11.0
         version: 3.17.0
@@ -46,7 +49,7 @@ importers:
         specifier: ^27.0.6
         version: 27.5.1
       nodemon:
-        specifier: ^2.0.7
+        specifier: ^2.0.22
         version: 2.0.22
 
 packages:
@@ -5424,8 +5427,7 @@ snapshots:
 
   utils-merge@1.0.1: {}
 
-  uuid@9.0.1:
-    optional: true
+  uuid@9.0.1: {}
 
   v8-to-istanbul@8.1.1:
     dependencies:
