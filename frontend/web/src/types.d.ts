@@ -66,14 +66,17 @@ export interface EnvironmentRecord {
     operatorId: string;
 }
 
+export type StageType = 'PLANTING' | 'GROWING' | 'HARVESTING';
+
 export interface QualityRecord {
     id: string;
     productId: string;
+    stage: StageType;
     testType: string;
     result: string;
     isQualified: boolean;
-    recordTime: string;
     inspectorId: string;
+    recordTime: string;
 }
 
 export interface User {

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import ProductList from './pages/products/ProductList';
 import ProductDetail from './pages/products/ProductDetail';
 import TraceabilityMap from './pages/trace/TraceabilityMap';
+import QualityInspection from './pages/quality/QualityInspection';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import { isAuthenticated } from './services/auth';
@@ -30,9 +31,14 @@ const MainLayout: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <AppSider />
-      <Layout>
+      <Layout style={{ marginLeft: 200 }}>
         <AppHeader />
-        <Content style={{ margin: '24px 16px', padding: 24, background: '#fff' }}>
+        <Content style={{ 
+          margin: '24px 16px', 
+          padding: 24, 
+          background: '#fff',
+          marginTop: 88
+        }}>
           <Outlet />
         </Content>
       </Layout>
@@ -62,6 +68,7 @@ const App: React.FC = () => {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:productId" element={<ProductDetail />} />
           <Route path="/trace" element={<TraceabilityMap />} />
+          <Route path="/quality" element={<QualityInspection />} />
         </Route>
       </Routes>
     </Router>

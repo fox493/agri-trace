@@ -52,11 +52,23 @@ type EnvironmentRecord struct {
 type QualityRecord struct {
 	ID          string    `json:"id"`          // 记录ID
 	ProductID   string    `json:"productId"`   // 产品ID
+	Stage       string    `json:"stage"`       // 检测阶段：PLANTING（播种）, GROWING（生长）, HARVESTING（收获）
 	TestType    string    `json:"testType"`    // 检测类型
 	Result      string    `json:"result"`      // 检测结果
 	IsQualified bool      `json:"isQualified"` // 是否合格
 	RecordTime  time.Time `json:"recordTime"`  // 记录时间
 	InspectorID string    `json:"inspectorId"` // 检测员ID
+}
+
+// LogisticsRecord 物流记录结构
+type LogisticsRecord struct {
+	ID          string    `json:"id"`          // 记录ID
+	ProductID   string    `json:"productId"`   // 产品ID
+	Location    string    `json:"location"`    // 当前位置
+	Status      string    `json:"status"`      // 运输状态：IN_TRANSIT（运输中）, DELIVERED（已送达）
+	Description string    `json:"description"` // 物流描述
+	OperatorID  string    `json:"operatorId"`  // 操作人ID
+	RecordTime  time.Time `json:"recordTime"`  // 记录时间
 }
 
 // InitLedger 初始化账本
@@ -385,6 +397,163 @@ func (t *AgriTrace) QueryProductionRecords(ctx contractapi.TransactionContextInt
 	}
 
 	return records, nil
+}
+
+// QueryProductsByStatus 按状态查询产品
+func (t *AgriTrace) QueryProductsByStatus(ctx contractapi.TransactionContextInterface, status string) ([]*Product, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var products []*Product
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var product Product
+		err = json.Unmarshal(queryResult.Value, &product)
+		if err != nil {
+			continue // 跳过非产品记录
+		}
+
+		// 在内存中过滤指定状态的产品
+		if product.Status == status {
+			products = append(products, &product)
+		}
+	}
+
+	return products, nil
+}
+
+// QueryQualityRecordsByInspector 查询质检员的检测记录
+func (t *AgriTrace) QueryQualityRecordsByInspector(ctx contractapi.TransactionContextInterface, inspectorID string) ([]*QualityRecord, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var records []*QualityRecord
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var record QualityRecord
+		err = json.Unmarshal(queryResult.Value, &record)
+		if err != nil {
+			continue // 跳过非质量检测记录
+		}
+
+		// 在内存中过滤指定质检员的记录
+		if record.InspectorID == inspectorID {
+			records = append(records, &record)
+		}
+	}
+
+	return records, nil
+}
+
+// AddLogisticsRecord 添加物流记录
+func (t *AgriTrace) AddLogisticsRecord(ctx contractapi.TransactionContextInterface, recordData string) error {
+	var record LogisticsRecord
+	err := json.Unmarshal([]byte(recordData), &record)
+	if err != nil {
+		return fmt.Errorf("解析物流记录数据失败: %v", err)
+	}
+	
+	// 检查产品是否存在
+	exists, err := t.ProductExists(ctx, record.ProductID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("产品不存在: %s", record.ProductID)
+	}
+	
+	// 设置记录时间
+	record.RecordTime = time.Now()
+	
+	recordJSON, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+	
+	return ctx.GetStub().PutState(record.ID, recordJSON)
+}
+
+// QueryLogisticsRecord 查询单个物流记录
+func (t *AgriTrace) QueryLogisticsRecord(ctx contractapi.TransactionContextInterface, recordID string) (*LogisticsRecord, error) {
+	recordJSON, err := ctx.GetStub().GetState(recordID)
+	if err != nil {
+		return nil, fmt.Errorf("查询物流记录失败: %v", err)
+	}
+	if recordJSON == nil {
+		return nil, fmt.Errorf("物流记录不存在: %s", recordID)
+	}
+
+	var record LogisticsRecord
+	err = json.Unmarshal(recordJSON, &record)
+	if err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}
+
+// QueryLogisticsRecordsByProduct 查询产品的物流记录
+func (t *AgriTrace) QueryLogisticsRecordsByProduct(ctx contractapi.TransactionContextInterface, productID string) ([]*LogisticsRecord, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var records []*LogisticsRecord
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var record LogisticsRecord
+		err = json.Unmarshal(queryResult.Value, &record)
+		if err != nil {
+			continue // 跳过非物流记录
+		}
+
+		if record.ProductID == productID {
+			records = append(records, &record)
+		}
+	}
+
+	return records, nil
+}
+
+// UpdateLogisticsRecord 更新物流记录状态
+func (t *AgriTrace) UpdateLogisticsRecord(ctx contractapi.TransactionContextInterface, recordID string, status string, location string, description string) error {
+	record, err := t.QueryLogisticsRecord(ctx, recordID)
+	if err != nil {
+		return err
+	}
+
+	// 更新记录信息
+	record.Status = status
+	record.Location = location
+	record.Description = description
+	record.RecordTime = time.Now()
+
+	recordJSON, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+
+	return ctx.GetStub().PutState(recordID, recordJSON)
 }
 
 func main() {

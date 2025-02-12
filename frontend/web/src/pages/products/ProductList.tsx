@@ -9,7 +9,7 @@ import {
     Row,
     Col
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { productService } from '../../services/product';
 import CreateProductModal from './CreateProductModal';
@@ -113,13 +113,22 @@ const ProductList: React.FC = () => {
                         <h2>我的农产品</h2>
                     </Col>
                     <Col>
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            onClick={() => setIsModalVisible(true)}
-                        >
-                            添加农产品
-                        </Button>
+                        <Space>
+                            <Button
+                                icon={<ReloadOutlined />}
+                                onClick={fetchProducts}
+                                loading={loading}
+                            >
+                                刷新
+                            </Button>
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={() => setIsModalVisible(true)}
+                            >
+                                添加农产品
+                            </Button>
+                        </Space>
                     </Col>
                 </Row>
 

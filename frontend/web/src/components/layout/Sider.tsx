@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, MenuProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined,
@@ -22,8 +22,9 @@ const AppSider: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user.role === 'admin';
   const isFarmer = user.role === 'farmer';
+  const isInspector = user.role === 'inspector';
 
-  const menuItems = [
+  const menuItems: MenuProps['items'] = [
     {
       key: '/',
       icon: <DashboardOutlined />,
@@ -47,11 +48,14 @@ const AppSider: React.FC = () => {
       icon: <EnvironmentOutlined />,
       label: '溯源查询'
     },
-    {
-      key: '/quality',
-      icon: <FileTextOutlined />,
-      label: '质量检测'
-    },
+    // 质检员特有的菜单项
+    ...(isInspector ? [
+      {
+        key: '/quality',
+        icon: <FileTextOutlined />,
+        label: '质量检测'
+      }
+    ] : []),
     // 管理员特有的菜单项
     ...(isAdmin ? [
       {
@@ -65,7 +69,7 @@ const AppSider: React.FC = () => {
         label: '系统设置'
       }
     ] : [])
-  ];
+  ].filter(Boolean) as MenuProps['items'];
 
   return (
     <Sider 
@@ -75,19 +79,23 @@ const AppSider: React.FC = () => {
       style={{
         overflow: 'auto',
         height: '100vh',
-        position: 'sticky',
-        top: 0,
+        position: 'fixed',
         left: 0,
+        top: 0,
+        bottom: 0,
+        zIndex: 2
       }}
+      width={200}
     >
       <div className="logo" style={{ 
-        height: 32, 
-        margin: 16, 
+        height: 64,  // 与顶部导航栏高度一致
+        margin: 0,
         background: 'rgba(255, 255, 255, 0.2)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#fff'
+        color: '#fff',
+        fontSize: '18px'
       }}>
         {!collapsed && '农产品溯源系统'}
       </div>
