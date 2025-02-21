@@ -8,6 +8,7 @@ import ProductList from './pages/products/ProductList';
 import ProductDetail from './pages/products/ProductDetail';
 import TraceabilityMap from './pages/trace/TraceabilityMap';
 import QualityInspection from './pages/quality/QualityInspection';
+import LogisticsManagement from './pages/logistics/LogisticsManagement';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import { isAuthenticated } from './services/auth';
@@ -69,6 +70,7 @@ const App: React.FC = () => {
           <Route path="/products/:productId" element={<ProductDetail />} />
           <Route path="/trace" element={<TraceabilityMap />} />
           <Route path="/quality" element={<QualityInspection />} />
+          <Route path="/logistics" element={<LogisticsManagement />} />
         </Route>
       </Routes>
     </Router>

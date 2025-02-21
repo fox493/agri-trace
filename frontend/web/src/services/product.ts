@@ -40,5 +40,16 @@ export const productService = {
     // 获取质量检测记录
     getQualityRecords: async (productId: string): Promise<QualityRecord[]> => {
         return apiService.get<QualityRecord[]>(`/quality/product/${productId}`);
+    },
+
+    // 获取指定状态的产品
+    getProductsByStatus: async (status: Product['status']): Promise<Product[]> => {
+        try {
+            const response = await apiService.get<Product[]>(`/products/status/${status}`);
+            return Array.isArray(response) ? response : [];
+        } catch (error) {
+            console.error('Error fetching products by status:', error);
+            return [];
+        }
     }
 }; 

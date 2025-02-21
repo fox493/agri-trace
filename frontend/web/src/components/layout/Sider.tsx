@@ -8,7 +8,8 @@ import {
   BarChartOutlined,
   SettingOutlined,
   AppstoreOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  CarOutlined
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -23,6 +24,7 @@ const AppSider: React.FC = () => {
   const isAdmin = user.role === 'admin';
   const isFarmer = user.role === 'farmer';
   const isInspector = user.role === 'inspector';
+  const isLogistics = user.role === 'logistics';
 
   const menuItems: MenuProps['items'] = [
     {
@@ -54,6 +56,14 @@ const AppSider: React.FC = () => {
         key: '/quality',
         icon: <FileTextOutlined />,
         label: '质量检测'
+      }
+    ] : []),
+    // 物流人员特有的菜单项
+    ...(isLogistics ? [
+      {
+        key: '/logistics',
+        icon: <CarOutlined />,
+        label: '物流管理'
       }
     ] : []),
     // 管理员特有的菜单项

@@ -11,8 +11,10 @@ import {
     Timeline,
     Table,
     message,
-    Spin
+    Spin,
+    Space
 } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
 import {
     LineChart,
     Line,
@@ -28,6 +30,12 @@ import AddProductionRecordModal from './AddProductionRecordModal';
 import { Product, EnvironmentRecord, QualityRecord, ProductionRecord } from '../../types';
 
 const { TabPane } = Tabs;
+
+const productionTypeMap: Record<ProductionRecord['type'], string> = {
+    'PLANTING': '播种',
+    'FERTILIZING': '施肥',
+    'HARVESTING': '收获'
+};
 
 interface ChartDataPoint {
     time: string;
@@ -121,17 +129,24 @@ const ProductDetail: React.FC = () => {
 
                 <Tabs defaultActiveKey="1" style={{ marginTop: 16 }}>
                     <TabPane tab="生产记录" key="1">
-                        <Button
-                            type="primary"
-                            onClick={() => setIsModalVisible(true)}
-                            style={{ marginBottom: 16 }}
-                        >
-                            添加生产记录
-                        </Button>
+                        <Space style={{ marginBottom: 16 }}>
+                            <Button
+                                type="primary"
+                                onClick={() => setIsModalVisible(true)}
+                            >
+                                添加生产记录
+                            </Button>
+                            <Button
+                                icon={<ReloadOutlined />}
+                                onClick={fetchProductData}
+                            >
+                                刷新
+                            </Button>
+                        </Space>
                         <Timeline>
                             {productionRecords.map(record => (
                                 <Timeline.Item key={record.id}>
-                                    <p><strong>{record.type}</strong> - {record.date}</p>
+                                    <p><strong>{productionTypeMap[record.type]}</strong> - {record.date}</p>
                                     <p>{record.description}</p>
                                 </Timeline.Item>
                             ))}

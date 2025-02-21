@@ -83,10 +83,20 @@ export interface User {
     id?: string;
     _id?: string;
     username: string;
-    role: 'admin' | 'farmer' | 'inspector';
+    role: 'admin' | 'farmer' | 'inspector' | 'logistics';
     name: string;
     email?: string;
     phone?: string;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface LogisticsRecord {
+    id: string;
+    productId: string;
+    location: string;
+    status: 'IN_TRANSIT' | 'DELIVERED';
+    description: string;
+    operatorId: string;
+    recordTime: string;
 } 
