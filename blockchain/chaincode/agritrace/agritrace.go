@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -366,6 +367,21 @@ func (t *AgriTrace) QueryQualityRecords(ctx contractapi.TransactionContextInterf
 		}
 	}
 
+	// 按阶段和时间排序
+	sort.Slice(records, func(i, j int) bool {
+		// 首先按阶段排序：HARVESTING > GROWING > PLANTING
+		stageOrder := map[string]int{
+			"HARVESTING": 3,
+			"GROWING":   2,
+			"PLANTING":  1,
+		}
+		if stageOrder[records[i].Stage] != stageOrder[records[j].Stage] {
+			return stageOrder[records[i].Stage] > stageOrder[records[j].Stage]
+		}
+		// 如果阶段相同，则按时间倒序
+		return records[i].RecordTime.After(records[j].RecordTime)
+	})
+
 	return records, nil
 }
 
@@ -485,6 +501,47 @@ func (t *AgriTrace) AddLogisticsRecord(ctx contractapi.TransactionContextInterfa
 	}
 	
 	return ctx.GetStub().PutState(record.ID, recordJSON)
+}
+
+// QueryLogisticsRecordsByOperator 查询操作员的物流记录
+func (t *AgriTrace) QueryLogisticsRecordsByOperator(ctx contractapi.TransactionContextInterface, operatorID string) (string, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return "", err
+	}
+	defer resultsIterator.Close()
+
+	var records []*LogisticsRecord
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return "", err
+		}
+
+		var record LogisticsRecord
+		err = json.Unmarshal(queryResult.Value, &record)
+		if err != nil {
+			continue // 跳过非物流记录
+		}
+
+		// 在内存中过滤指定操作员的记录
+		if record.OperatorID == operatorID {
+			records = append(records, &record)
+		}
+	}
+
+	// 确保即使没有找到记录也返回有效的 JSON 数组
+	if records == nil {
+		records = []*LogisticsRecord{}
+	}
+
+	// 将结果转换为 JSON 字符串
+	recordsJSON, err := json.Marshal(records)
+	if err != nil {
+		return "", fmt.Errorf("转换物流记录列表为 JSON 失败: %v", err)
+	}
+
+	return string(recordsJSON), nil
 }
 
 // QueryLogisticsRecord 查询单个物流记录

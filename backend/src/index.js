@@ -31,11 +31,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/products', auth, require('./routes/products'));
+const authRoutes = require('./routes/auth');
+const productsRoutes = require('./routes/products');
+const qualityRoutes = require('./routes/quality');
+const logisticsRoutes = require('./routes/logistics');
+
+// Register routes
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productsRoutes);
 app.use('/api/farms', auth, require('./routes/farms'));
 app.use('/api/environment', auth, require('./routes/environment'));
-app.use('/api/quality', auth, require('./routes/quality'));
+app.use('/api/quality', qualityRoutes);
+app.use('/api/logistics', logisticsRoutes);
 
 // Initialize Fabric client
 (async () => {

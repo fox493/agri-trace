@@ -42,7 +42,7 @@ async function connectToNetwork() {
 }
 
 // 创建新的农产品记录
-router.post('/', checkPermission('createProduct'), async (req, res) => {
+router.post('/', [auth, checkPermission('createProduct')], async (req, res) => {
     try {
         const productData = {
             id: req.body.id,
@@ -69,7 +69,7 @@ router.post('/', checkPermission('createProduct'), async (req, res) => {
 });
 
 // 添加生产记录
-router.post('/:productId/production-records', checkPermission('updateProductionInfo'), async (req, res) => {
+router.post('/:productId/production-records', [auth, checkPermission('updateProductionInfo')], async (req, res) => {
     try {
         const recordData = {
             id: req.body.id,
@@ -96,7 +96,7 @@ router.post('/:productId/production-records', checkPermission('updateProductionI
 });
 
 // 获取生产记录
-router.get('/:productId/production-records', async (req, res) => {
+router.get('/:productId/production-records', auth, async (req, res) => {
     try {
         const result = await fabricClient.evaluateTransaction(
             'QueryProductionRecords',
@@ -109,6 +109,30 @@ router.get('/:productId/production-records', async (req, res) => {
         res.json(records);
     } catch (error) {
         logger.error('查询生产记录失败:', error);
+        res.status(500).json({ error: error.message || '服务器内部错误' });
+    }
+});
+
+// 按状态查询产品
+router.get('/status/:status', auth, async (req, res) => {
+    try {
+        logger.info('Querying products by status:', req.params.status);
+        
+        const result = await fabricClient.evaluateTransaction(
+            'QueryProductsByStatus',
+            req.params.status
+        );
+        
+        // 如果返回的是空字符串，则返回空数组
+        const resultStr = result.toString();
+        const products = resultStr ? JSON.parse(resultStr) : [];
+        
+        // 添加调试日志
+        logger.info(`Found ${products.length} products with status ${req.params.status}:`, products);
+        
+        res.json(products);
+    } catch (error) {
+        logger.error('Error querying products by status:', error);
         res.status(500).json({ error: error.message || '服务器内部错误' });
     }
 });
@@ -130,7 +154,7 @@ router.get('/:productId', async (req, res) => {
 });
 
 // 查询农户的所有农产品
-router.get('/farmer/:farmerId', async (req, res) => {
+router.get('/farmer/:farmerId', auth, async (req, res) => {
     try {
         const result = await fabricClient.evaluateTransaction(
             'QueryProductsByFarmer',
@@ -146,7 +170,7 @@ router.get('/farmer/:farmerId', async (req, res) => {
 });
 
 // 更新农产品状态
-router.put('/:productId/status', checkPermission('farmer'), async (req, res) => {
+router.put('/:productId/status', [auth, checkPermission('farmer')], async (req, res) => {
     try {
         const result = await fabricClient.submitTransaction(
             'UpdateProductStatus',
@@ -166,72 +190,100 @@ router.put('/:productId/status', checkPermission('farmer'), async (req, res) => 
 });
 
 // 更新生产信息
-router.put('/:id/production', async (req, res) => {
+router.put('/:id/production', [auth, checkPermission('updateProductionInfo')], async (req, res) => {
     try {
-        const result = await fabricClient.updateProductionInfo(req.params.id, req.body);
-        res.json(result);
+        const result = await fabricClient.submitTransaction(
+            'UpdateProductionInfo',
+            req.params.id,
+            JSON.stringify(req.body)
+        );
+        res.json({
+            message: '生产信息更新成功',
+            productId: req.params.id
+        });
     } catch (error) {
-        console.error('Error updating production info:', error);
-        res.status(500).json({ error: error.message });
+        logger.error('更新生产信息失败:', error);
+        res.status(500).json({ error: error.message || '服务器内部错误' });
     }
 });
 
 // 添加物流信息
-router.post('/:id/logistics', async (req, res) => {
+router.post('/:id/logistics', [auth, checkPermission('addLogisticsInfo')], async (req, res) => {
     try {
-        const result = await fabricClient.addLogisticsInfo(req.params.id, req.body);
-        res.json(result);
+        const result = await fabricClient.submitTransaction(
+            'AddLogisticsRecord',
+            JSON.stringify({
+                ...req.body,
+                productId: req.params.id,
+                operatorId: req.user.id
+            })
+        );
+        res.json({
+            message: '物流信息添加成功',
+            productId: req.params.id
+        });
     } catch (error) {
-        console.error('Error adding logistics info:', error);
-        res.status(500).json({ error: error.message });
+        logger.error('添加物流信息失败:', error);
+        res.status(500).json({ error: error.message || '服务器内部错误' });
     }
 });
 
 // 添加质量检测信息
-router.post('/:id/quality', async (req, res) => {
+router.post('/:id/quality', [auth, checkPermission('addQualityInspection')], async (req, res) => {
     try {
-        const result = await fabricClient.addQualityInfo(req.params.id, req.body);
-        res.json(result);
+        const result = await fabricClient.submitTransaction(
+            'AddQualityRecord',
+            JSON.stringify({
+                ...req.body,
+                productId: req.params.id,
+                inspectorId: req.user.id
+            })
+        );
+        res.json({
+            message: '质量检测信息添加成功',
+            productId: req.params.id
+        });
     } catch (error) {
-        console.error('Error adding quality info:', error);
-        res.status(500).json({ error: error.message });
+        logger.error('添加质量检测信息失败:', error);
+        res.status(500).json({ error: error.message || '服务器内部错误' });
     }
 });
 
 // 按批次查询产品
-router.get('/batch/:batchNumber', async (req, res) => {
+router.get('/batch/:batchNumber', auth, async (req, res) => {
     try {
-        const result = await fabricClient.queryProductsByBatch(req.params.batchNumber);
-        res.json(result);
+        const result = await fabricClient.evaluateTransaction(
+            'QueryProductsByBatch',
+            req.params.batchNumber
+        );
+        
+        const products = JSON.parse(result.toString());
+        res.json(products);
     } catch (error) {
-        console.error('Error querying products by batch:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// 按状态查询产品
-router.get('/status/:status', async (req, res) => {
-    try {
-        const result = await fabricClient.queryProductsByStatus(req.params.status);
-        res.json(result);
-    } catch (error) {
-        console.error('Error querying products by status:', error);
-        res.status(500).json({ error: error.message });
+        logger.error('Error querying products by batch:', error);
+        res.status(500).json({ error: error.message || '服务器内部错误' });
     }
 });
 
 // 按日期范围查询产品
-router.get('/daterange', async (req, res) => {
+router.get('/daterange', auth, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
         if (!startDate || !endDate) {
             return res.status(400).json({ error: 'Start date and end date are required' });
         }
-        const result = await fabricClient.queryProductsByDateRange(startDate, endDate);
-        res.json(result);
+        
+        const result = await fabricClient.evaluateTransaction(
+            'QueryProductsByDateRange',
+            startDate,
+            endDate
+        );
+        
+        const products = JSON.parse(result.toString());
+        res.json(products);
     } catch (error) {
-        console.error('Error querying products by date range:', error);
-        res.status(500).json({ error: error.message });
+        logger.error('Error querying products by date range:', error);
+        res.status(500).json({ error: error.message || '服务器内部错误' });
     }
 });
 

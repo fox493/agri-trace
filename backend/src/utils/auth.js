@@ -5,11 +5,11 @@ const JWT_EXPIRES_IN = '24h';
 
 // 用户角色
 const ROLES = {
+    ADMIN: 'admin',
     FARMER: 'farmer',        // 农户
     LOGISTICS: 'logistics',  // 物流方
     RETAILER: 'retailer',   // 零售商
     INSPECTOR: 'inspector',  // 质检员
-    ADMIN: 'admin',         // 管理员
     CONSUMER: 'consumer'    // 消费者
 };
 
@@ -23,14 +23,16 @@ const ROLE_PERMISSIONS = {
         'recordHarvest',          // 记录收获信息
         'manageFarm',             // 管理农场信息
         'viewFarmProducts',       // 查看自己的农产品
-        'queryProduct'            // 查询产品
+        'queryProduct',            // 查询产品
+        'addProductionRecord'      // 添加生产记录
     ],
     [ROLES.LOGISTICS]: [
         'addLogisticsInfo',       // 添加物流信息
         'updateProcessingInfo',   // 更新加工信息
         'updateStorageInfo',      // 更新仓储信息
         'addQualityInfo',         // 添加运输过程中的质量信息
-        'queryProduct'            // 查询产品
+        'queryProduct',            // 查询产品
+        'updateLogisticsInfo'      // 更新物流信息
     ],
     [ROLES.RETAILER]: [
         'updateRetailInfo',       // 更新零售信息
