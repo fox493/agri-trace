@@ -13,7 +13,7 @@ export interface Product {
     area: number;
     plantingDate: string;
     harvestDate?: string;
-    status: 'PLANTING' | 'HARVESTED';
+    status: 'PLANTING' | 'HARVESTED' | 'ON_SALE' | 'SOLD_OUT' | 'OFF_SHELF';
     farmerId: string;
     location: string;
     createdAt: string;
@@ -83,7 +83,7 @@ export interface User {
     id?: string;
     _id?: string;
     username: string;
-    role: 'admin' | 'farmer' | 'inspector' | 'logistics';
+    role: 'admin' | 'farmer' | 'inspector' | 'logistics' | 'retailer' | 'consumer';
     name: string;
     email?: string;
     phone?: string;
@@ -99,4 +99,65 @@ export interface LogisticsRecord {
     description: string;
     operatorId: string;
     recordTime: string;
+}
+
+export interface RetailInventory {
+    id: string;
+    productId: string;
+    retailerId: string;
+    quantity: number;
+    minQuantity: number;
+    updatedAt: string;
+}
+
+export interface SalesRecord {
+    id: string;
+    productId: string;
+    retailerId: string;
+    quantity: number;
+    unitPrice: number;
+    totalAmount: number;
+    saleTime: string;
+    paymentType: string;
+}
+
+export interface PriceRecord {
+    id: string;
+    productId: string;
+    retailerId: string;
+    price: number;
+    startTime: string;
+    endTime?: string;
+    status: 'ACTIVE' | 'INACTIVE';
+    uniqueId?: string;
+}
+
+export interface ConsumerPurchase {
+    id: string;
+    salesId: string;
+    productId: string;
+    consumerId: string;
+    retailerId: string;
+    quantity: number;
+    unitPrice: number;
+    totalAmount: number;
+    purchaseTime: string;
+    paymentType: string;
+    purchaseCode: string;
+}
+
+export interface ProductFeedback {
+    id: string;
+    productId: string;
+    consumerId: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+}
+
+export interface Consumer {
+    id: string;
+    name: string;
+    phone: string;
+    createdAt: string;
 } 

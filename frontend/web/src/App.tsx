@@ -9,6 +9,10 @@ import ProductDetail from './pages/products/ProductDetail';
 import TraceabilityMap from './pages/trace/TraceabilityMap';
 import QualityInspection from './pages/quality/QualityInspection';
 import LogisticsManagement from './pages/logistics/LogisticsManagement';
+import RetailManagement from './pages/seller/RetailManagement';
+import ConsumerPurchase from './pages/consumer/ConsumerPurchase';
+import PurchaseHistory from './pages/consumer/PurchaseHistory';
+import ProductFeedback from './pages/consumer/ProductFeedback';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import { isAuthenticated } from './services/auth';
@@ -71,6 +75,10 @@ const App: React.FC = () => {
           <Route path="/trace" element={<TraceabilityMap />} />
           <Route path="/quality" element={<QualityInspection />} />
           <Route path="/logistics" element={<LogisticsManagement />} />
+          <Route path="/retail" element={<RetailManagement />} />
+          <Route path="/consumer/purchase" element={<ConsumerPurchase />} />
+          <Route path="/consumer/history" element={<PurchaseHistory />} />
+          <Route path="/consumer/feedback" element={<ProductFeedback />} />
         </Route>
       </Routes>
     </Router>

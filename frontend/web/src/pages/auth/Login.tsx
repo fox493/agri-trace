@@ -12,6 +12,17 @@ interface LoginFormValues {
     password: string;
 }
 
+interface LoginResponse {
+    success: boolean;
+    error?: string;
+    token: string;
+    user: {
+        id: string;
+        username: string;
+        role: string;
+    };
+}
+
 const Login: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [form] = Form.useForm();

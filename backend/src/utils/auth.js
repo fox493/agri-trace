@@ -35,10 +35,15 @@ const ROLE_PERMISSIONS = {
         'updateLogisticsInfo'      // 更新物流信息
     ],
     [ROLES.RETAILER]: [
-        'updateRetailInfo',       // 更新零售信息
-        'markProductAsSold',      // 标记产品为已售出
-        'addQualityInfo',         // 添加销售环节的质量信息
-        'manageInventory',        // 管理库存
+        'addRetailInventory',     // 添加零售库存
+        'updateRetailInventory',  // 更新库存数量
+        'viewRetailInventory',    // 查看库存
+        'addSalesRecord',         // 添加销售记录
+        'viewSalesRecords',       // 查看销售记录
+        'setProductPrice',        // 设置产品价格
+        'viewPriceHistory',       // 查看价格历史
+        'viewCurrentPrice',       // 查看当前价格
+        'manageProductStatus',    // 管理产品状态（上架、下架、售罄）
         'queryProduct'            // 查询产品
     ],
     [ROLES.INSPECTOR]: [
@@ -51,7 +56,13 @@ const ROLE_PERMISSIONS = {
     [ROLES.CONSUMER]: [
         'queryProduct',           // 查询产品
         'viewTraceability',       // 查看溯源信息
-        'submitFeedback'          // 提交反馈
+        'submitFeedback',         // 提交反馈
+        'addPurchase',           // 添加购买记录
+        'viewPurchases',         // 查看购买历史
+        'addFeedback',           // 添加商品反馈
+        'viewFeedback',          // 查看反馈历史
+        'viewCurrentPrice',       // 查看当前价格
+        'viewRetailInventory'    // 查看零售库存
     ],
     [ROLES.ADMIN]: [
         'all'                     // 管理员有所有权限

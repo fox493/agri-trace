@@ -96,6 +96,8 @@ const Register: React.FC = () => {
                             <Option value="farmer">农户</Option>
                             <Option value="inspector">检测员</Option>
                             <Option value="logistics">物流人员</Option>
+                            <Option value="retailer">零售商</Option>
+                            <Option value="consumer">消费者</Option>
                         </Select>
                     </Form.Item>
 

@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
 const { generateToken, hashPassword, comparePassword, ROLES } = require('../utils/auth');
+const fabricClient = require('../utils/fabric');
+const { logger } = require('../utils/logger');
 
 // 用户注册
 router.post('/register', async (req, res) => {
@@ -44,6 +46,53 @@ router.post('/register', async (req, res) => {
 
         await user.save();
 
+        // 如果是消费者角色，注册消费者信息到链码
+        if (role === ROLES.CONSUMER) {
+            try {
+                const consumer = {
+                    id: user._id.toString(),
+                    name: username,
+                    phone: '',  // 可以后续更新
+                };
+
+                logger.info('Registering consumer to chaincode:', consumer);
+
+                await fabricClient.submitTransaction(
+                    'RegisterConsumer',
+                    JSON.stringify(consumer)
+                );
+            } catch (error) {
+                // 如果链码注册失败，删除已创建的用户
+                await User.findByIdAndDelete(user._id);
+                logger.error('Failed to register consumer to chaincode:', error);
+                return res.status(500).json({ error: '消费者注册失败' });
+            }
+        }
+
+        // 如果是零售商角色，注册零售商信息到链码
+        if (role === ROLES.RETAILER) {
+            try {
+                const retailer = {
+                    id: user._id.toString(),
+                    name: username,
+                    address: '',  // 可以后续更新
+                    phone: '',    // 可以后续更新
+                };
+
+                logger.info('Registering retailer to chaincode:', retailer);
+
+                await fabricClient.submitTransaction(
+                    'RegisterRetailer',
+                    JSON.stringify(retailer)
+                );
+            } catch (error) {
+                // 如果链码注册失败，删除已创建的用户
+                await User.findByIdAndDelete(user._id);
+                logger.error('Failed to register retailer to chaincode:', error);
+                return res.status(500).json({ error: '零售商注册失败' });
+            }
+        }
+
         // 生成 token
         const token = generateToken(user);
 
@@ -57,7 +106,7 @@ router.post('/register', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Registration error:', error);
+        logger.error('Registration error:', error);
         res.status(500).json({ error: '注册失败，请稍后重试' });
     }
 });

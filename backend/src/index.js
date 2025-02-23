@@ -35,6 +35,8 @@ const authRoutes = require('./routes/auth');
 const productsRoutes = require('./routes/products');
 const qualityRoutes = require('./routes/quality');
 const logisticsRoutes = require('./routes/logistics');
+const retailRoutes = require('./routes/retail');
+const consumerRoutes = require('./routes/consumer');
 
 // Register routes
 app.use('/api/auth', authRoutes);
@@ -43,6 +45,8 @@ app.use('/api/farms', auth, require('./routes/farms'));
 app.use('/api/environment', auth, require('./routes/environment'));
 app.use('/api/quality', qualityRoutes);
 app.use('/api/logistics', logisticsRoutes);
+app.use('/api/retail', retailRoutes);
+app.use('/api/consumer', consumerRoutes);
 
 // Initialize Fabric client
 (async () => {

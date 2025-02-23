@@ -9,7 +9,8 @@ import {
   SettingOutlined,
   AppstoreOutlined,
   FileTextOutlined,
-  CarOutlined
+  CarOutlined,
+  ShopOutlined
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -25,24 +26,29 @@ const AppSider: React.FC = () => {
   const isFarmer = user.role === 'farmer';
   const isInspector = user.role === 'inspector';
   const isLogistics = user.role === 'logistics';
+  const isRetailer = user.role === 'retailer';
+  const isConsumer = user.role === 'consumer';
 
   const menuItems: MenuProps['items'] = [
     {
       key: '/',
       icon: <DashboardOutlined />,
-      label: '仪表盘'
+      label: '首页',
+      onClick: () => navigate('/')
     },
     // 农户特有的菜单项
     ...(isFarmer ? [
       {
         key: '/products',
         icon: <AppstoreOutlined />,
-        label: '农产品管理'
+        label: '产品管理',
+        onClick: () => navigate('/products')
       },
       {
-        key: '/farms',
-        icon: <HomeOutlined />,
-        label: '农场管理'
+        key: '/environment',
+        icon: <EnvironmentOutlined />,
+        label: '环境监测',
+        onClick: () => navigate('/environment')
       }
     ] : []),
     {
@@ -55,7 +61,8 @@ const AppSider: React.FC = () => {
       {
         key: '/quality',
         icon: <FileTextOutlined />,
-        label: '质量检测'
+        label: '质量检测',
+        onClick: () => navigate('/quality')
       }
     ] : []),
     // 物流人员特有的菜单项
@@ -63,7 +70,38 @@ const AppSider: React.FC = () => {
       {
         key: '/logistics',
         icon: <CarOutlined />,
-        label: '物流管理'
+        label: '物流管理',
+        onClick: () => navigate('/logistics')
+      }
+    ] : []),
+    // 零售商特有的菜单项
+    ...(isRetailer ? [
+      {
+        key: '/retail',
+        icon: <ShopOutlined />,
+        label: '零售管理',
+        onClick: () => navigate('/retail')
+      }
+    ] : []),
+    // 消费者特有的菜单项
+    ...(isConsumer ? [
+      {
+        key: '/consumer/purchase',
+        icon: <ShopOutlined />,
+        label: '商品购买',
+        onClick: () => navigate('/consumer/purchase')
+      },
+      {
+        key: '/consumer/history',
+        icon: <FileTextOutlined />,
+        label: '购买历史',
+        onClick: () => navigate('/consumer/history')
+      },
+      {
+        key: '/consumer/feedback',
+        icon: <BarChartOutlined />,
+        label: '商品反馈',
+        onClick: () => navigate('/consumer/feedback')
       }
     ] : []),
     // 管理员特有的菜单项
