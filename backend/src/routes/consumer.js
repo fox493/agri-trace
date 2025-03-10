@@ -5,29 +5,13 @@ const fabricClient = require('../utils/fabric');
 const { checkPermission } = require('../utils/auth');
 const auth = require('../middleware/auth');
 
-// 注册消费者
+// 注册消费者 - 已废弃，使用通用/auth/register接口
 router.post('/register', async (req, res) => {
-    try {
-        const { name, phone } = req.body;
-
-        const consumer = {
-            id: `CONSUMER_${Date.now()}`,
-            name,
-            phone,
-        };
-
-        logger.info('Registering consumer:', consumer);
-
-        await fabricClient.submitTransaction(
-            'RegisterConsumer',
-            JSON.stringify(consumer)
-        );
-
-        res.json({ message: '消费者注册成功', consumer });
-    } catch (error) {
-        logger.error('消费者注册失败:', error);
-        res.status(500).json({ error: error.message || '服务器内部错误' });
-    }
+    // 返回引导信息，指导使用新的注册接口
+    return res.status(410).json({
+        error: '此注册端点已废弃',
+        message: '请使用统一的注册接口 /api/auth/register，将role字段设置为"consumer"'
+    });
 });
 
 // 添加购买记录
@@ -38,7 +22,7 @@ router.post('/purchase', [auth, checkPermission('addPurchase')], async (req, res
         const purchase = {
             id: `PURCHASE_${Date.now()}`,
             productId,
-            consumerId: req.user.id,
+            consumerId: `CONSUMER_${req.user.id}`,
             retailerId,
             quantity,
             unitPrice,
@@ -66,7 +50,7 @@ router.get('/purchases', [auth, checkPermission('viewPurchases')], async (req, r
 
         const result = await fabricClient.evaluateTransaction(
             'QueryConsumerPurchases',
-            req.user.id
+            `CONSUMER_${req.user.id}`
         );
 
         let purchases;
@@ -85,7 +69,9 @@ router.get('/purchases', [auth, checkPermission('viewPurchases')], async (req, r
 
             // 验证数据结构并过滤掉带有SALE_前缀的记录
             purchases = purchases
-                .filter(purchase => !purchase.id.startsWith('SALE_')) // 过滤掉SALE_开头的记录
+                .filter(purchase => 
+                    purchase.id.startsWith('PURCHASE_') && // 只保留以PURCHASE_开头的记录
+                    !purchase.id.startsWith('SALE_')) // 过滤掉SALE_开头的记录
                 .map(purchase => ({
                     id: purchase.id || '',
                     salesId: purchase.salesId || '',
@@ -133,7 +119,7 @@ router.post('/feedback', [auth, checkPermission('addFeedback')], async (req, res
         const feedback = {
             id: `FEEDBACK_${purchaseId}`,
             productId,
-            consumerId: req.user.id,
+            consumerId: `CONSUMER_${req.user.id}`,
             rating,
             comment,
             createdAt: new Date().toISOString()
@@ -160,7 +146,7 @@ router.get('/feedback', [auth, checkPermission('viewFeedback')], async (req, res
 
         const result = await fabricClient.evaluateTransaction(
             'QueryConsumerFeedbacks',
-            req.user.id
+            `CONSUMER_${req.user.id}`
         );
 
         let feedbacks;
@@ -238,7 +224,7 @@ router.get('/retailers', [auth, checkPermission('queryProduct')], async (req, re
                 retailers = [retailers];
             }
 
-            // 验证数据结构并处理ID前缀
+            // 处理数据 - 由于链码已经过滤了只有RETAILER_前缀的实体
             retailers = retailers.map(retailer => ({
                 id: retailer.id ? retailer.id.replace('RETAILER_', '') : '',
                 name: retailer.name || '',

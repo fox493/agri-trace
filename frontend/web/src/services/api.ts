@@ -79,4 +79,12 @@ class ApiService {
 }
 
 export const apiService = new ApiService();
-export default apiService; 
+export default apiService;
+
+// 溯源查询 API
+export const TRACE_PRODUCT_API = '/api/trace/product';  // 获取产品溯源信息
+export const TRACE_HISTORY_API = '/api/trace/history';  // 获取产品溯源历史
+export const TRACE_CERTIFICATIONS_API = '/api/trace/certifications';  // 获取产品认证信息
+export const TRACE_ENVIRONMENT_API = '/api/trace/environment';  // 获取产品环境数据
+export const TRACE_INVENTORY_API = '/api/retail/public/inventory';  // 获取产品库存信息
+export const VERIFY_PRODUCT_API = '/api/trace/verify';  // 验证产品真实性 

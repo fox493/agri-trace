@@ -160,4 +160,24 @@ export interface Consumer {
     name: string;
     phone: string;
     createdAt: string;
+}
+
+// 溯源相关接口
+export interface TraceResponse {
+  product: Product;
+  productionInfo: any[];
+  processingInfo: any[];
+  logisticsInfo: any[];
+  qualityInfo: any[];
+  retailInfo: any[];
+}
+
+export interface TraceCodeResponse {
+  product: Product;
+  traceCode: string;
+}
+
+export interface VerificationResult {
+  verified: boolean;
+  message?: string;
 } 

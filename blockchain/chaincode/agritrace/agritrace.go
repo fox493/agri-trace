@@ -793,6 +793,38 @@ func (t *AgriTrace) QueryInventoryByRetailer(ctx contractapi.TransactionContextI
 	return inventories, nil
 }
 
+// QueryAllInventories 查询所有零售商的库存
+func (t *AgriTrace) QueryAllInventories(ctx contractapi.TransactionContextInterface) ([]*RetailInventory, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var inventories []*RetailInventory
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		// 只处理以INV_开头的记录
+		if !strings.HasPrefix(queryResult.Key, "INV_") {
+			continue
+		}
+
+		var inventory RetailInventory
+		err = json.Unmarshal(queryResult.Value, &inventory)
+		if err != nil {
+			continue // 跳过非库存记录
+		}
+
+		inventories = append(inventories, &inventory)
+	}
+
+	return inventories, nil
+}
+
 // AddSalesRecord 添加销售记录
 func (t *AgriTrace) AddSalesRecord(ctx contractapi.TransactionContextInterface, recordData string) error {
 	var record SalesRecord
@@ -1095,6 +1127,11 @@ func (t *AgriTrace) RegisterConsumer(ctx contractapi.TransactionContextInterface
 	err := json.Unmarshal([]byte(consumerData), &consumer)
 	if err != nil {
 		return fmt.Errorf("解析消费者数据失败: %v", err)
+	}
+
+	// 确保ID有CONSUMER_前缀
+	if !strings.HasPrefix(consumer.ID, "CONSUMER_") {
+		consumer.ID = fmt.Sprintf("CONSUMER_%s", consumer.ID)
 	}
 
 	// 检查消费者ID是否已存在
@@ -1605,11 +1642,10 @@ func (t *AgriTrace) QueryRetailers(ctx contractapi.TransactionContextInterface) 
 			return nil, err
 		}
 
-		// 跳过带有特定前缀的记录
-		if strings.HasPrefix(queryResult.Key, "INV_") ||
-		   strings.HasPrefix(queryResult.Key, "SALE_") ||
-		   strings.HasPrefix(queryResult.Key, "PRICE_") ||
-		   strings.HasPrefix(queryResult.Key, "PURCHASE_") {
+		key := queryResult.Key
+		
+		// 只处理带有RETAILER_前缀的记录
+		if !strings.HasPrefix(key, "RETAILER_") {
 			continue
 		}
 
@@ -1617,10 +1653,10 @@ func (t *AgriTrace) QueryRetailers(ctx contractapi.TransactionContextInterface) 
 		err = json.Unmarshal(queryResult.Value, &retailer)
 		if err != nil {
 			fmt.Printf("Warning: Failed to unmarshal retailer: %v\n", err)
-			continue // 跳过无效的零售商记录
+			continue
 		}
 
-		// 只添加有效的零售商记录（必须有name字段）
+		// 必须有名称字段
 		if retailer.Name != "" {
 			retailers = append(retailers, &retailer)
 		}
@@ -1642,9 +1678,9 @@ func (t *AgriTrace) RegisterRetailer(ctx contractapi.TransactionContextInterface
 		return fmt.Errorf("解析零售商数据失败: %v", err)
 	}
 
-	// 如果ID带有RETAILER_前缀，去掉前缀
-	if strings.HasPrefix(retailer.ID, "RETAILER_") {
-		retailer.ID = strings.TrimPrefix(retailer.ID, "RETAILER_")
+	// 确保ID有RETAILER_前缀
+	if !strings.HasPrefix(retailer.ID, "RETAILER_") {
+		retailer.ID = fmt.Sprintf("RETAILER_%s", retailer.ID)
 	}
 
 	// 检查ID是否已存在
@@ -1666,6 +1702,310 @@ func (t *AgriTrace) RegisterRetailer(ctx contractapi.TransactionContextInterface
 	}
 
 	return ctx.GetStub().PutState(retailer.ID, retailerJSON)
+}
+
+// QueryConsumers 查询所有消费者
+func (t *AgriTrace) QueryConsumers(ctx contractapi.TransactionContextInterface) ([]*Consumer, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var consumers []*Consumer
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		key := queryResult.Key
+		
+		// 只处理带有CONSUMER_前缀的记录
+		if !strings.HasPrefix(key, "CONSUMER_") {
+			continue
+		}
+
+		var consumer Consumer
+		err = json.Unmarshal(queryResult.Value, &consumer)
+		if err != nil {
+			fmt.Printf("Warning: Failed to unmarshal consumer: %v\n", err)
+			continue
+		}
+
+		// 必须有名称字段
+		if consumer.Name != "" {
+			consumers = append(consumers, &consumer)
+		}
+	}
+
+	// 如果没有找到记录，返回空数组而不是nil
+	if consumers == nil {
+		consumers = []*Consumer{}
+	}
+
+	return consumers, nil
+}
+
+// RegisterFarmer 注册农户
+func (t *AgriTrace) RegisterFarmer(ctx contractapi.TransactionContextInterface, farmerData string) error {
+	// 检查参数
+	if len(farmerData) == 0 {
+		return fmt.Errorf("农户数据不能为空")
+	}
+
+	// 解析农户数据
+	var farmer map[string]interface{}
+	err := json.Unmarshal([]byte(farmerData), &farmer)
+	if err != nil {
+		return fmt.Errorf("解析农户数据失败: %v", err)
+	}
+
+	// 检查必要字段
+	farmerID, ok := farmer["id"].(string)
+	if !ok || len(farmerID) == 0 {
+		return fmt.Errorf("农户ID不能为空")
+	}
+
+	// 检查农户是否已存在
+	farmerExists, err := t.FarmerExists(ctx, farmerID)
+	if err != nil {
+		return err
+	}
+	if farmerExists {
+		return fmt.Errorf("农户已存在: %s", farmerID)
+	}
+
+	// 保存农户数据
+	err = ctx.GetStub().PutState(fmt.Sprintf("FARMER_%s", farmerID), []byte(farmerData))
+	if err != nil {
+		return fmt.Errorf("保存农户数据失败: %v", err)
+	}
+
+	return nil
+}
+
+// FarmerExists 检查农户是否已存在
+func (t *AgriTrace) FarmerExists(ctx contractapi.TransactionContextInterface, farmerID string) (bool, error) {
+	if len(farmerID) == 0 {
+		return false, fmt.Errorf("农户ID不能为空")
+	}
+
+	farmerBytes, err := ctx.GetStub().GetState(fmt.Sprintf("FARMER_%s", farmerID))
+	if err != nil {
+		return false, fmt.Errorf("查询农户失败: %v", err)
+	}
+
+	return farmerBytes != nil, nil
+}
+
+// GetFarmer 获取单个农户信息
+func (t *AgriTrace) GetFarmer(ctx contractapi.TransactionContextInterface, farmerID string) (string, error) {
+	if len(farmerID) == 0 {
+		return "", fmt.Errorf("农户ID不能为空")
+	}
+
+	farmerBytes, err := ctx.GetStub().GetState(fmt.Sprintf("FARMER_%s", farmerID))
+	if err != nil {
+		return "", fmt.Errorf("查询农户失败: %v", err)
+	}
+	if farmerBytes == nil {
+		return "", fmt.Errorf("农户不存在: %s", farmerID)
+	}
+
+	return string(farmerBytes), nil
+}
+
+// RegisterLogistics 注册物流商
+func (t *AgriTrace) RegisterLogistics(ctx contractapi.TransactionContextInterface, logisticsData string) error {
+	// 检查参数
+	if len(logisticsData) == 0 {
+		return fmt.Errorf("物流商数据不能为空")
+	}
+
+	// 解析物流商数据
+	var logistics map[string]interface{}
+	err := json.Unmarshal([]byte(logisticsData), &logistics)
+	if err != nil {
+		return fmt.Errorf("解析物流商数据失败: %v", err)
+	}
+
+	// 检查必要字段
+	logisticsID, ok := logistics["id"].(string)
+	if !ok || len(logisticsID) == 0 {
+		return fmt.Errorf("物流商ID不能为空")
+	}
+
+	// 检查物流商是否已存在
+	logisticsExists, err := t.LogisticsExists(ctx, logisticsID)
+	if err != nil {
+		return err
+	}
+	if logisticsExists {
+		return fmt.Errorf("物流商已存在: %s", logisticsID)
+	}
+
+	// 保存物流商数据
+	err = ctx.GetStub().PutState(fmt.Sprintf("LOGISTICS_%s", logisticsID), []byte(logisticsData))
+	if err != nil {
+		return fmt.Errorf("保存物流商数据失败: %v", err)
+	}
+
+	return nil
+}
+
+// LogisticsExists 检查物流商是否已存在
+func (t *AgriTrace) LogisticsExists(ctx contractapi.TransactionContextInterface, logisticsID string) (bool, error) {
+	if len(logisticsID) == 0 {
+		return false, fmt.Errorf("物流商ID不能为空")
+	}
+
+	logisticsBytes, err := ctx.GetStub().GetState(fmt.Sprintf("LOGISTICS_%s", logisticsID))
+	if err != nil {
+		return false, fmt.Errorf("查询物流商失败: %v", err)
+	}
+
+	return logisticsBytes != nil, nil
+}
+
+// GetLogistics 获取单个物流商信息
+func (t *AgriTrace) GetLogistics(ctx contractapi.TransactionContextInterface, logisticsID string) (string, error) {
+	if len(logisticsID) == 0 {
+		return "", fmt.Errorf("物流商ID不能为空")
+	}
+
+	logisticsBytes, err := ctx.GetStub().GetState(fmt.Sprintf("LOGISTICS_%s", logisticsID))
+	if err != nil {
+		return "", fmt.Errorf("查询物流商失败: %v", err)
+	}
+	if logisticsBytes == nil {
+		return "", fmt.Errorf("物流商不存在: %s", logisticsID)
+	}
+
+	return string(logisticsBytes), nil
+}
+
+// RegisterInspector 注册检查员
+func (t *AgriTrace) RegisterInspector(ctx contractapi.TransactionContextInterface, inspectorData string) error {
+	// 检查参数
+	if len(inspectorData) == 0 {
+		return fmt.Errorf("检查员数据不能为空")
+	}
+
+	// 解析检查员数据
+	var inspector map[string]interface{}
+	err := json.Unmarshal([]byte(inspectorData), &inspector)
+	if err != nil {
+		return fmt.Errorf("解析检查员数据失败: %v", err)
+	}
+
+	// 检查必要字段
+	inspectorID, ok := inspector["id"].(string)
+	if !ok || len(inspectorID) == 0 {
+		return fmt.Errorf("检查员ID不能为空")
+	}
+
+	// 检查检查员是否已存在
+	inspectorExists, err := t.InspectorExists(ctx, inspectorID)
+	if err != nil {
+		return err
+	}
+	if inspectorExists {
+		return fmt.Errorf("检查员已存在: %s", inspectorID)
+	}
+
+	// 保存检查员数据
+	err = ctx.GetStub().PutState(fmt.Sprintf("INSPECTOR_%s", inspectorID), []byte(inspectorData))
+	if err != nil {
+		return fmt.Errorf("保存检查员数据失败: %v", err)
+	}
+
+	return nil
+}
+
+// InspectorExists 检查检查员是否已存在
+func (t *AgriTrace) InspectorExists(ctx contractapi.TransactionContextInterface, inspectorID string) (bool, error) {
+	if len(inspectorID) == 0 {
+		return false, fmt.Errorf("检查员ID不能为空")
+	}
+
+	inspectorBytes, err := ctx.GetStub().GetState(fmt.Sprintf("INSPECTOR_%s", inspectorID))
+	if err != nil {
+		return false, fmt.Errorf("查询检查员失败: %v", err)
+	}
+
+	return inspectorBytes != nil, nil
+}
+
+// GetInspector 获取单个检查员信息
+func (t *AgriTrace) GetInspector(ctx contractapi.TransactionContextInterface, inspectorID string) (string, error) {
+	if len(inspectorID) == 0 {
+		return "", fmt.Errorf("检查员ID不能为空")
+	}
+
+	inspectorBytes, err := ctx.GetStub().GetState(fmt.Sprintf("INSPECTOR_%s", inspectorID))
+	if err != nil {
+		return "", fmt.Errorf("查询检查员失败: %v", err)
+	}
+	if inspectorBytes == nil {
+		return "", fmt.Errorf("检查员不存在: %s", inspectorID)
+	}
+
+	return string(inspectorBytes), nil
+}
+
+// UpdateInventorySettings 更新库存设置（如最小库存数量）
+func (t *AgriTrace) UpdateInventorySettings(ctx contractapi.TransactionContextInterface, inventoryID string, minQuantity int) error {
+	inventoryJSON, err := ctx.GetStub().GetState(inventoryID)
+	if err != nil {
+		return fmt.Errorf("查询库存记录失败: %v", err)
+	}
+	if inventoryJSON == nil {
+		return fmt.Errorf("库存记录不存在: %s", inventoryID)
+	}
+
+	var inventory RetailInventory
+	err = json.Unmarshal(inventoryJSON, &inventory)
+	if err != nil {
+		return err
+	}
+
+	// 更新最小库存数量和时间
+	inventory.MinQuantity = minQuantity
+	inventory.UpdatedAt = time.Now()
+
+	// 检查当前库存是否低于新设置的最小库存
+	if inventory.Quantity <= minQuantity {
+		// 触发库存预警
+		fmt.Printf("库存预警: 产品 %s 库存数量 %d 低于最小库存 %d\n", 
+			inventory.ProductID, inventory.Quantity, minQuantity)
+	}
+
+	inventoryJSON, err = json.Marshal(inventory)
+	if err != nil {
+		return err
+	}
+
+	return ctx.GetStub().PutState(inventoryID, inventoryJSON)
+}
+
+// QueryInventory 根据ID查询单个库存记录
+func (t *AgriTrace) QueryInventory(ctx contractapi.TransactionContextInterface, inventoryID string) (*RetailInventory, error) {
+	inventoryJSON, err := ctx.GetStub().GetState(inventoryID)
+	if err != nil {
+		return nil, fmt.Errorf("查询库存记录失败: %v", err)
+	}
+	if inventoryJSON == nil {
+		return nil, fmt.Errorf("库存记录不存在: %s", inventoryID)
+	}
+
+	var inventory RetailInventory
+	err = json.Unmarshal(inventoryJSON, &inventory)
+	if err != nil {
+		return nil, err
+	}
+
+	return &inventory, nil
 }
 
 func main() {

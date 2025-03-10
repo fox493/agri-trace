@@ -2,8 +2,8 @@
 
 # 设置环境变量
 export CHAINCODE_NAME="agritrace"
-export CHAINCODE_VERSION="3.5"  # 确保版本号与你的链码版本一致
-export CHAINCODE_SEQUENCE="5"   # 增加序列号
+export CHAINCODE_VERSION="1"  # 增加版本号
+export CHAINCODE_SEQUENCE="1"   # 增加序列号
 export CHANNEL_NAME="agritrace"
 
 # 从文件读取版本号，如果文件不存在则创建

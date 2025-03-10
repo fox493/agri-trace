@@ -16,6 +16,20 @@ export async function updateInventory(id: string, quantity: number) {
     });
 }
 
+export async function updateInventorySettings(id: string, minQuantity: number) {
+    return request(`/api/retail/inventory/${id}`, {
+        method: 'PUT',
+        data: { minQuantity },
+    });
+}
+
+export async function updateInventoryFull(id: string, data: {quantity?: number, minQuantity?: number}) {
+    return request(`/api/retail/inventory/${id}`, {
+        method: 'PUT',
+        data,
+    });
+}
+
 export async function getInventoryList() {
     return request('/api/retail/inventory', {
         method: 'GET',

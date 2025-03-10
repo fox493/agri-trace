@@ -54,7 +54,8 @@ const AppSider: React.FC = () => {
     {
       key: '/trace',
       icon: <EnvironmentOutlined />,
-      label: '溯源查询'
+      label: '溯源查询',
+      onClick: () => navigate('/trace')
     },
     // 质检员特有的菜单项
     ...(isInspector ? [

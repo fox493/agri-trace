@@ -8,7 +8,7 @@ const { logger } = require('../utils/logger');
 // 用户注册
 router.post('/register', async (req, res) => {
     try {
-        const { username, password, role } = req.body;
+        const { username, password, role, name, phone, address, profile } = req.body;
 
         // 检查必要字段
         if (!username || !password || !role) {
@@ -41,56 +41,103 @@ router.post('/register', async (req, res) => {
         const user = new User({
             username,
             password: hashedPassword,
-            role
+            role,
+            profile: {
+                name: name || username,
+                phone: phone || '',
+                address: address || '',
+                ...profile
+            }
         });
 
         await user.save();
 
-        // 如果是消费者角色，注册消费者信息到链码
-        if (role === ROLES.CONSUMER) {
-            try {
-                const consumer = {
-                    id: user._id.toString(),
-                    name: username,
-                    phone: '',  // 可以后续更新
-                };
+        // 用于链码注册的主要ID
+        const userId = user._id.toString();
+        // 确保实体名称有值
+        const entityName = name || username;
 
-                logger.info('Registering consumer to chaincode:', consumer);
-
-                await fabricClient.submitTransaction(
-                    'RegisterConsumer',
-                    JSON.stringify(consumer)
-                );
-            } catch (error) {
-                // 如果链码注册失败，删除已创建的用户
-                await User.findByIdAndDelete(user._id);
-                logger.error('Failed to register consumer to chaincode:', error);
-                return res.status(500).json({ error: '消费者注册失败' });
+        // 根据不同角色在区块链上注册
+        try {
+            switch(role) {
+                case ROLES.CONSUMER:
+                    const consumer = {
+                        id: `CONSUMER_${userId}`,
+                        name: entityName,
+                        phone: phone || '',
+                    };
+                    logger.info('Registering consumer to chaincode:', consumer);
+                    await fabricClient.submitTransaction(
+                        'RegisterConsumer',
+                        JSON.stringify(consumer)
+                    );
+                    break;
+                    
+                case ROLES.RETAILER:
+                    const retailer = {
+                        id: `RETAILER_${userId}`,
+                        name: entityName,
+                        address: address || '',
+                        phone: phone || '',
+                    };
+                    logger.info('Registering retailer to chaincode:', retailer);
+                    await fabricClient.submitTransaction(
+                        'RegisterRetailer',
+                        JSON.stringify(retailer)
+                    );
+                    break;
+                    
+                case ROLES.FARMER:
+                    const farmer = {
+                        id: `FARMER_${userId}`,
+                        name: entityName,
+                        address: address || '',
+                        phone: phone || '',
+                    };
+                    logger.info('Registering farmer to chaincode:', farmer);
+                    await fabricClient.submitTransaction(
+                        'RegisterFarmer',
+                        JSON.stringify(farmer)
+                    );
+                    break;
+                    
+                case ROLES.LOGISTICS:
+                    const logistics = {
+                        id: `LOGISTICS_${userId}`,
+                        name: entityName,
+                        address: address || '',
+                        phone: phone || '',
+                    };
+                    logger.info('Registering logistics to chaincode:', logistics);
+                    await fabricClient.submitTransaction(
+                        'RegisterLogistics',
+                        JSON.stringify(logistics)
+                    );
+                    break;
+                    
+                case ROLES.INSPECTOR:
+                    const inspector = {
+                        id: `INSPECTOR_${userId}`,
+                        name: entityName,
+                        address: address || '',
+                        phone: phone || '',
+                        certifications: [],
+                    };
+                    logger.info('Registering inspector to chaincode:', inspector);
+                    await fabricClient.submitTransaction(
+                        'RegisterInspector',
+                        JSON.stringify(inspector)
+                    );
+                    break;
+                    
+                default:
+                    logger.info(`User registered with role ${role}, no chaincode registration needed`);
             }
-        }
-
-        // 如果是零售商角色，注册零售商信息到链码
-        if (role === ROLES.RETAILER) {
-            try {
-                const retailer = {
-                    id: user._id.toString(),
-                    name: username,
-                    address: '',  // 可以后续更新
-                    phone: '',    // 可以后续更新
-                };
-
-                logger.info('Registering retailer to chaincode:', retailer);
-
-                await fabricClient.submitTransaction(
-                    'RegisterRetailer',
-                    JSON.stringify(retailer)
-                );
-            } catch (error) {
-                // 如果链码注册失败，删除已创建的用户
-                await User.findByIdAndDelete(user._id);
-                logger.error('Failed to register retailer to chaincode:', error);
-                return res.status(500).json({ error: '零售商注册失败' });
-            }
+        } catch (error) {
+            // 如果链码注册失败，删除已创建的用户
+            await User.findByIdAndDelete(user._id);
+            logger.error(`Failed to register ${role} to chaincode:`, error);
+            return res.status(500).json({ error: `${role}注册失败` });
         }
 
         // 生成 token
@@ -102,7 +149,8 @@ router.post('/register', async (req, res) => {
             user: {
                 id: user._id,
                 username: user.username,
-                role: user.role
+                role: user.role,
+                profile: user.profile
             }
         });
     } catch (error) {
@@ -137,11 +185,12 @@ router.post('/login', async (req, res) => {
             user: {
                 id: user._id,
                 username: user.username,
-                role: user.role
+                role: user.role,
+                profile: user.profile
             }
         });
     } catch (error) {
-        console.error('Login error:', error);
+        logger.error('Login error:', error);
         res.status(500).json({ error: '登录失败，请稍后重试' });
     }
 });
@@ -155,7 +204,7 @@ router.get('/me', async (req, res) => {
         }
         res.json(user);
     } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.error('Error fetching user:', error);
         res.status(500).json({ error: 'Failed to fetch user information' });
     }
 });
