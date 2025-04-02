@@ -1,0 +1,77 @@
+{
+	"name": "agritrace-network",
+	"version": "1.0.0",
+	"client": {
+		"tlsEnable": true,
+		"caCredential": {
+			"id": "admin",
+			"password": "adminpw"
+		},
+		"adminCredential": {
+			"id": "exploreradmin",
+			"password": "exploreradminpw"
+		},
+		"enableAuthentication": true,
+		"organization": "ProducersMSP",
+		"connection": {
+			"timeout": {
+				"peer": {
+					"endorser": "300"
+				},
+				"orderer": "300"
+			}
+		}
+	},
+	"channels": {
+		"agritrace": {
+			"peers": {
+				"peer0.producers.agritrace.com": {}
+			},
+			"connection": {
+				"timeout": {
+					"peer": {
+						"endorser": "6000",
+						"eventHub": "6000",
+						"eventReg": "6000"
+					}
+				}
+			}
+		}
+	},
+	"organizations": {
+		"ProducersMSP": {
+			"mspid": "ProducersMSP",
+			"fullpath": false,
+			"adminPrivateKey": {
+				"path": "/tmp/crypto/peerOrganizations/producers.agritrace.com/users/Admin@producers.agritrace.com/msp/keystore/priv_sk"
+			},
+			"peers": ["peer0.producers.agritrace.com"],
+			"signedCert": {
+				"path": "/tmp/crypto/peerOrganizations/producers.agritrace.com/users/Admin@producers.agritrace.com/msp/signcerts/Admin@producers.agritrace.com-cert.pem"
+			}
+		}
+	},
+	"peers": {
+		"peer0.producers.agritrace.com": {
+			"tlsCACerts": {
+				"path": "/tmp/crypto/peerOrganizations/producers.agritrace.com/peers/peer0.producers.agritrace.com/tls/ca.crt"
+			},
+			"url": "grpcs://peer0.producers.agritrace.com:7051",
+			"grpcOptions": {
+				"ssl-target-name-override": "peer0.producers.agritrace.com",
+				"grpc.keepalive_time_ms": 600000
+			}
+		}
+	},
+	"orderers": {
+		"orderer.agritrace.com": {
+			"url": "grpcs://orderer.agritrace.com:7050",
+			"tlsCACerts": {
+				"path": "/tmp/crypto/ordererOrganizations/agritrace.com/orderers/orderer.agritrace.com/tls/ca.crt"
+			},
+			"grpcOptions": {
+				"ssl-target-name-override": "orderer.agritrace.com"
+			}
+		}
+	}
+}

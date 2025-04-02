@@ -1,0 +1,12 @@
+{
+	"network-configs": {
+		"agritrace-network": {
+			"name": "AgriTrace Network",
+			"profile": "./connection-profile/agritrace-network.json",
+			"enableAuthentication": true,
+			"bootMode": "ALL",
+			"noOfBlocks": 0
+		}
+	},
+	"license": "Apache-2.0"
+}
