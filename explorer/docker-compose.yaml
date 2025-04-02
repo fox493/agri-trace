@@ -12,18 +12,12 @@ networks:
 services:
   explorerdb:
     image: ghcr.io/hyperledger-labs/explorer-db:latest
-    platform: linux/arm64
     container_name: explorerdb
     hostname: explorerdb
     environment:
       - DATABASE_DATABASE=fabricexplorer
       - DATABASE_USERNAME=hppoc
       - DATABASE_PASSWORD=password
-    healthcheck:
-      test: "pg_isready -h localhost -p 5432 -q -U postgres"
-      interval: 30s
-      timeout: 10s
-      retries: 5
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -31,7 +25,6 @@ services:
 
   explorer:
     image: ghcr.io/hyperledger-labs/explorer:latest
-    platform: linux/arm64
     container_name: explorer
     hostname: explorer
     environment:
